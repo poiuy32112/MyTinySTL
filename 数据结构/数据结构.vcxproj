@@ -36,6 +36,7 @@
     <ClInclude Include="TinySTL\multiset.h" />
     <ClInclude Include="TinySTL\rb_tree.h" />
     <ClInclude Include="TinySTL\set.h" />
+    <ClInclude Include="TinySTL\stack.h" />
     <ClInclude Include="TinySTL\unordered_set.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
