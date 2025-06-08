@@ -24,6 +24,7 @@
   <ItemGroup>
     <ClInclude Include="TinySTL\deque.h" />
     <ClInclude Include="TinySTL\hashtable.h" />
+    <ClInclude Include="TinySTL\rb_tree.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
