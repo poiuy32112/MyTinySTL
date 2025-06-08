@@ -35,5 +35,8 @@
     <ClInclude Include="TinySTL\unordered_set.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TinySTL\multiset.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

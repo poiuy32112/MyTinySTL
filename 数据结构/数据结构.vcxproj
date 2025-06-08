@@ -33,6 +33,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="TinySTL\multiset.h" />
     <ClInclude Include="TinySTL\rb_tree.h" />
     <ClInclude Include="TinySTL\set.h" />
     <ClInclude Include="TinySTL\unordered_set.h" />
