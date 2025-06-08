@@ -29,5 +29,8 @@
     <ClInclude Include="TinySTL\rb_tree.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TinySTL\set.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
