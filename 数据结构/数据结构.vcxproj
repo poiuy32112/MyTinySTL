@@ -36,6 +36,7 @@
     <ClInclude Include="TinySTL\map.h" />
     <ClInclude Include="TinySTL\multimap.h" />
     <ClInclude Include="TinySTL\multiset.h" />
+    <ClInclude Include="TinySTL\queue.h" />
     <ClInclude Include="TinySTL\rb_tree.h" />
     <ClInclude Include="TinySTL\set.h" />
     <ClInclude Include="TinySTL\stack.h" />
