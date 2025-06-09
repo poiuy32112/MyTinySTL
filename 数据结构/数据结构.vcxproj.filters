@@ -44,5 +44,8 @@
     <ClInclude Include="TinySTL\map.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TinySTL\unordered_map.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
