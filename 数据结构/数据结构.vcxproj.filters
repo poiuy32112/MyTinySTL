@@ -53,5 +53,8 @@
     <ClInclude Include="TinySTL\queue.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="TinySTL\priority_queue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
