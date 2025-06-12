@@ -8,40 +8,40 @@ template <typename T>
 class vector
 {
 public:
-	// ±ê×¼STLÀàÐÍ¶¨Òå
+	// ï¿½ï¿½×¼STLï¿½ï¿½ï¿½Í¶ï¿½ï¿½ï¿½
 	typedef T                               value_type;
-	typedef T* pointer;
-	typedef const T* const_pointer;
-	typedef T& reference;
-	typedef const T& const_reference;
+	typedef T*								pointer;
+	typedef const T*						const_pointer;
+	typedef T&								reference;
+	typedef const T&						const_reference;
 	typedef size_t                          size_type;
 	typedef ptrdiff_t                       difference_type;
-	typedef T* iterator;
-	typedef const T* const_iterator;
+	typedef T*								iterator;
+	typedef const T*						const_iterator;
 
 private:
-	iterator m_elements;     // Ö¸Ïò¶¯Ì¬Êý×éµÄÖ¸Õë
-	size_type m_capacity; // Êý×éµÄÈÝÁ¿
-	size_type m_size;     // Êý×éÖÐÔªËØµÄ¸öÊý
+	iterator m_elements;     // Ö¸ï¿½ï¿½Ì¬ï¿½ï¿½ï¿½ï¿½ï¿½Ö¸ï¿½ï¿½
+	size_type m_capacity; // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	size_type m_size;     // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ØµÄ¸ï¿½ï¿½ï¿½
 
 public:
-	// ¹¹Ôìº¯Êý
+	// ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
 	vector() : m_elements(nullptr), m_capacity(0), m_size(0) {}
 
-	// Îö¹¹º¯Êý
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	~vector()
 	{
 		delete[] m_elements;
 	}
 
-	// ¿½±´¹¹Ôìº¯Êý
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ìº¯ï¿½ï¿½
 	vector(const vector& other) : m_capacity(other.m_capacity), m_size(other.m_size)
 	{
 		m_elements = new T[m_capacity];
 		std::copy(other.m_elements, other.m_elements + m_size, m_elements);
 	}
 
-	// ¿½±´¸³Öµ²Ù×÷·û
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Öµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	vector& operator=(const vector& other)
 	{
 		if (this != &other)
@@ -55,33 +55,33 @@ public:
 		return *this;
 	}
 
-	// Ìí¼ÓÔªËØµ½Êý×éÄ©Î²
+	// ï¿½ï¿½ï¿½ï¿½Ôªï¿½Øµï¿½ï¿½ï¿½ï¿½ï¿½Ä©Î²
 	void push_back(const T& value)
 	{
 		if (m_size == m_capacity)
 		{
-			// Èç¹ûÊý×éÒÑÂú£¬À©Õ¹ÈÝÁ¿
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½
 			reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
 		}
 		m_elements[m_size++] = value;
 	}
 
-	// »ñÈ¡Êý×éÖÐÔªËØµÄ¸öÊý
+	// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôªï¿½ØµÄ¸ï¿½ï¿½ï¿½
 	size_t getSize() const
 	{
 		return m_size;
 	}
 
-	// »ñÈ¡Êý×éµÄÈÝÁ¿
+	// ï¿½ï¿½È¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	size_t getCapacity() const
 	{
 		return m_capacity;
 	}
 
-	// ·ÃÎÊÊý×éÖÐµÄÔªËØ
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½
 	T& operator[](size_t index)
 	{
-		// ¼ì²éË÷ÒýÊÇ·ñÔ½½ç
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ô½ï¿½ï¿½
 		if (index >= m_size)
 		{
 			throw std::out_of_range("Index out of range");
@@ -89,10 +89,10 @@ public:
 		return m_elements[index];
 	}
 
-	// const°æ±¾µÄ·ÃÎÊÊý×éÖÐµÄÔªËØ
+	// constï¿½æ±¾ï¿½Ä·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½
 	const T& operator[](size_t index) const
 	{
-		// ¼ì²éË÷ÒýÊÇ·ñÔ½½ç
+		// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½Ô½ï¿½ï¿½
 		if (index >= m_size)
 		{
 			throw std::out_of_range("Index out of range");
@@ -100,7 +100,7 @@ public:
 		return m_elements[index];
 	}
 
-	// ÔÚÖ¸¶¨Î»ÖÃ²åÈëÔªËØ
+	// ï¿½ï¿½Ö¸ï¿½ï¿½Î»ï¿½Ã²ï¿½ï¿½ï¿½Ôªï¿½ï¿½
 	void insert(size_t index, const T& value)
 	{
 		if (index > m_size)
@@ -119,7 +119,7 @@ public:
 		++m_size;
 	}
 
-	// É¾³ýÊý×éÄ©Î²µÄÔªËØ
+	// É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©Î²ï¿½ï¿½Ôªï¿½ï¿½
 	void pop_back()
 	{
 		if (m_size > 0)
@@ -128,51 +128,51 @@ public:
 		}
 	}
 
-	// ÔÚÈÝÆ÷Ä©Î²Ö±½Ó¹¹ÔìÔªËØ£¨Ê¹ÓÃÍêÃÀ×ª·¢£©
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä©Î²Ö±ï¿½Ó¹ï¿½ï¿½ï¿½Ôªï¿½Ø£ï¿½Ê¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½ï¿½ï¿½ï¿½
 	template<typename... Args>
 	void emplace_back(Args&&... args)
 	{
 		if (m_size == m_capacity)
 		{
-			// Èç¹ûÈÝÁ¿²»×ã£¬À©Õ¹ÈÝÁ¿
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã£¬ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½
 			reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
 		}
-		// Ê¹ÓÃplacement newÔÚÖ¸¶¨Î»ÖÃÖ±½Ó¹¹ÔìÔªËØ
+		// Ê¹ï¿½ï¿½placement newï¿½ï¿½Ö¸ï¿½ï¿½Î»ï¿½ï¿½Ö±ï¿½Ó¹ï¿½ï¿½ï¿½Ôªï¿½ï¿½
 		new (&m_elements[m_size]) T(std::forward<Args>(args)...);
 		++m_size;
 	}
 
-	// Çå¿ÕÊý×é
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void clear()
 	{
 		m_size = 0;
 	}
 
-	// Ê¹ÓÃµü´úÆ÷±éÀúÊý×éµÄ¿ªÊ¼Î»ÖÃ
+	// Ê¹ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½Ê¼Î»ï¿½ï¿½
 	T* begin()
 	{
 		return m_elements;
 	}
 
-	// Ê¹ÓÃµü´úÆ÷±éÀúÊý×éµÄ½áÊøÎ»ÖÃ
+	// Ê¹ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	T* end()
 	{
 		return m_elements + m_size;
 	}
 
-	// Ê¹ÓÃµü´úÆ÷±éÀúÊý×éµÄ¿ªÊ¼Î»ÖÃ£¨const°æ±¾£©
+	// Ê¹ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¿ï¿½Ê¼Î»ï¿½Ã£ï¿½constï¿½æ±¾ï¿½ï¿½
 	const T* begin() const
 	{
 		return m_elements;
 	}
 
-	// Ê¹ÓÃµü´úÆ÷±éÀúÊý×éµÄ½áÊøÎ»ÖÃ£¨const°æ±¾£©
+	// Ê¹ï¿½Ãµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä½ï¿½ï¿½ï¿½Î»ï¿½Ã£ï¿½constï¿½æ±¾ï¿½ï¿½
 	const T* end() const
 	{
 		return m_elements + m_size;
 	}
 
-	// ´òÓ¡Êý×éÖÐµÄÔªËØ
+	// ï¿½ï¿½Ó¡ï¿½ï¿½ï¿½ï¿½ï¿½Ðµï¿½Ôªï¿½ï¿½
 	void printElements() const
 	{
 		for (size_t i = 0; i < m_size; ++i)
@@ -183,7 +183,7 @@ public:
 	}
 
 private:
-	// À©Õ¹Êý×éÈÝÁ¿
+	// ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 	void reserve(size_t newCapacity)
 	{
 		if (newCapacity > m_capacity)
