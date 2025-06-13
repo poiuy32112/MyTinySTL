@@ -8,7 +8,7 @@ template <typename T>
 class vector
 {
 public:
-	// ��׼STL���Ͷ���
+	// 标准STL类型定义
 	typedef T                               value_type;
 	typedef T*								pointer;
 	typedef const T*						const_pointer;
@@ -20,28 +20,28 @@ public:
 	typedef const T*						const_iterator;
 
 private:
-	iterator m_elements;     // ָ��̬�����ָ��
-	size_type m_capacity; // ���������
-	size_type m_size;     // ������Ԫ�صĸ���
+	iterator m_elements;     // 指向动态数组的指针
+	size_type m_capacity; // 容器的容量
+	size_type m_size;     // 容器中元素的个数
 
 public:
-	// ���캯��
+	// 构造函数
 	vector() : m_elements(nullptr), m_capacity(0), m_size(0) {}
 
-	// ��������
+	// 析构函数
 	~vector()
 	{
 		delete[] m_elements;
 	}
 
-	// �������캯��
+	// 拷贝构造函数
 	vector(const vector& other) : m_capacity(other.m_capacity), m_size(other.m_size)
 	{
 		m_elements = new T[m_capacity];
 		std::copy(other.m_elements, other.m_elements + m_size, m_elements);
 	}
 
-	// ������ֵ������
+	// 拷贝赋值运算符
 	vector& operator=(const vector& other)
 	{
 		if (this != &other)
@@ -55,33 +55,33 @@ public:
 		return *this;
 	}
 
-	// ����Ԫ�ص�����ĩβ
+	// 添加元素到容器末尾
 	void push_back(const T& value)
 	{
 		if (m_size == m_capacity)
 		{
-			// ���������������չ����
+			// 如果容量不足，则扩展容量
 			reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
 		}
 		m_elements[m_size++] = value;
 	}
 
-	// ��ȡ������Ԫ�صĸ���
+	// 获取容器中元素的个数
 	size_t getSize() const
 	{
 		return m_size;
 	}
 
-	// ��ȡ���������
+	// 获取容器的容量
 	size_t getCapacity() const
 	{
 		return m_capacity;
 	}
 
-	// ���������е�Ԫ��
+	// 访问容器中的元素
 	T& operator[](size_t index)
 	{
-		// ��������Ƿ�Խ��
+		// 检查索引是否越界
 		if (index >= m_size)
 		{
 			throw std::out_of_range("Index out of range");
@@ -89,10 +89,10 @@ public:
 		return m_elements[index];
 	}
 
-	// const�汾�ķ��������е�Ԫ��
+	// const版本的访问容器中的元素
 	const T& operator[](size_t index) const
 	{
-		// ��������Ƿ�Խ��
+		// 检查索引是否越界
 		if (index >= m_size)
 		{
 			throw std::out_of_range("Index out of range");
@@ -100,7 +100,7 @@ public:
 		return m_elements[index];
 	}
 
-	// ��ָ��λ�ò���Ԫ��
+	// 在指定位置插入元素
 	void insert(size_t index, const T& value)
 	{
 		if (index > m_size)
@@ -119,7 +119,7 @@ public:
 		++m_size;
 	}
 
-	// ɾ������ĩβ��Ԫ��
+	// 删除容器末尾的元素
 	void pop_back()
 	{
 		if (m_size > 0)
@@ -128,51 +128,51 @@ public:
 		}
 	}
 
-	// ������ĩβֱ�ӹ���Ԫ�أ�ʹ������ת����
+	// 在容器末尾直接构造元素，使用完美转发
 	template<typename... Args>
 	void emplace_back(Args&&... args)
 	{
 		if (m_size == m_capacity)
 		{
-			// ����������㣬��չ����
+			// 如果容量不足，扩展容量
 			reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
 		}
-		// ʹ��placement new��ָ��λ��ֱ�ӹ���Ԫ��
+		// 使用placement new在指定位置直接构造元素
 		new (&m_elements[m_size]) T(std::forward<Args>(args)...);
 		++m_size;
 	}
 
-	// �������
+	// 清空容器
 	void clear()
 	{
 		m_size = 0;
 	}
 
-	// ʹ�õ�������������Ŀ�ʼλ��
+	// 使用迭代器访问容器的开始位置
 	T* begin()
 	{
 		return m_elements;
 	}
 
-	// ʹ�õ�������������Ľ���λ��
+	// 使用迭代器访问容器的结束位置
 	T* end()
 	{
 		return m_elements + m_size;
 	}
 
-	// ʹ�õ�������������Ŀ�ʼλ�ã�const�汾��
+	// 使用迭代器访问容器的开始位置（const版本）
 	const T* begin() const
 	{
 		return m_elements;
 	}
 
-	// ʹ�õ�������������Ľ���λ�ã�const�汾��
+	// 使用迭代器访问容器的结束位置（const版本）
 	const T* end() const
 	{
 		return m_elements + m_size;
 	}
 
-	// ��ӡ�����е�Ԫ��
+	// 打印容器中的元素
 	void printElements() const
 	{
 		for (size_t i = 0; i < m_size; ++i)
@@ -183,7 +183,7 @@ public:
 	}
 
 private:
-	// ��չ��������
+	// 扩展容器容量
 	void reserve(size_t newCapacity)
 	{
 		if (newCapacity > m_capacity)

@@ -21,6 +21,12 @@
     <ClCompile Include="vector\test.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="vector\test_move_semantics1_3.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="vector\test_exception_safety1_2.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="TinySTL\deque.h">
@@ -66,6 +72,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="vector\vector1_2.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vector\vector1_3.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="vector\vector.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
