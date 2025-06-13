@@ -85,6 +85,7 @@
     <ClInclude Include="vector\vector1_3.h" />
     <ClInclude Include="vector\vector1_4.h" />
     <ClInclude Include="vector\vector2_1.h" />
+    <ClInclude Include="vector\vector2_2.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

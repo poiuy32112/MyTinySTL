@@ -479,6 +479,162 @@ void test_reverse_iterators_edge_cases()
 	std::cout << "反向迭代器边界情况测试通过!" << std::endl;
 }
 
+// 11. 测试元素访问接口
+void test_element_access()
+{
+	std::cout << "\n=== 11. 测试元素访问接口 ===\n";
+	
+	// 创建测试vector
+	vector<int> v;
+	for(int i = 10; i <= 50; i += 10) {
+		v.push_back(i);  // [10, 20, 30, 40, 50]
+	}
+	print_info(v, "v (初始状态)");
+	
+	// 测试 at() 方法
+	std::cout << "--- 测试 at() 方法 ---\n";
+	assert(v.at(0) == 10);
+	assert(v.at(2) == 30);
+	assert(v.at(4) == 50);
+	
+	// 测试 at() 修改元素
+	v.at(1) = 200;
+	assert(v.at(1) == 200);
+	std::cout << "at()方法访问和修改测试通过!\n";
+	
+	// 测试 const at()
+	const vector<int>& cv = v;
+	assert(cv.at(0) == 10);
+	assert(cv.at(1) == 200);
+	std::cout << "const at()方法测试通过!\n";
+	
+	// 测试 at() 越界异常
+	try {
+		v.at(5);  // 越界访问
+		assert(false);  // 不应该到达这里
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获at()越界异常: " << e.what() << std::endl;
+	}
+	
+	// 测试 front() 和 back() 方法
+	std::cout << "--- 测试 front() 和 back() 方法 ---\n";
+	assert(v.front() == 10);
+	assert(v.back() == 50);
+	std::cout << "front(): " << v.front() << ", back(): " << v.back() << std::endl;
+	
+	// 测试修改 front() 和 back()
+	v.front() = 100;
+	v.back() = 500;
+	assert(v.front() == 100);
+	assert(v.back() == 500);
+	print_info(v, "v (修改front和back后)");
+	
+	// 测试 const front() 和 back()
+	assert(cv.front() == 100);
+	assert(cv.back() == 500);
+	std::cout << "const front()和back()测试通过!\n";
+	
+	// 测试 data() 方法
+	std::cout << "--- 测试 data() 方法 ---\n";
+	int* ptr = v.data();
+	assert(ptr != nullptr);
+	assert(*ptr == v[0]);
+	assert(*(ptr + 1) == v[1]);
+	
+	// 通过 data() 修改元素
+	*ptr = 999;
+	assert(v[0] == 999);
+	std::cout << "data()方法访问和修改测试通过!\n";
+	
+	// 测试 const data()
+	const int* const_ptr = cv.data();
+	assert(const_ptr != nullptr);
+	assert(*const_ptr == v[0]);
+	assert(*(const_ptr + 2) == v[2]);
+	std::cout << "const data()方法测试通过!\n";
+	
+	print_info(v, "v (最终状态)");
+}
+
+// 12. 测试空容器的元素访问
+void test_empty_container_access()
+{
+	std::cout << "\n=== 12. 测试空容器的元素访问 ===\n";
+	
+	vector<int> empty_v;
+	assert(empty_v.getSize() == 0);
+	
+	// 测试空容器的 data() 方法
+	int* ptr = empty_v.data();
+	// data() 对空容器可能返回nullptr，这是允许的
+	std::cout << "空容器data()指针: " << (ptr ? "非空" : "空") << std::endl;
+	
+	// 测试空容器的异常情况
+	try {
+		empty_v.at(0);
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获空容器at()异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		empty_v.front();
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获空容器front()异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		empty_v.back();
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获空容器back()异常: " << e.what() << std::endl;
+	}
+	
+	std::cout << "空容器元素访问测试通过!" << std::endl;
+}
+
+// 13. 测试字符串类型的元素访问
+void test_string_element_access()
+{
+	std::cout << "\n=== 13. 测试字符串类型的元素访问 ===\n";
+	
+	vector<std::string> vs;
+	vs.push_back("first");
+	vs.push_back("second");
+	vs.push_back("third");
+	print_info(vs, "vs (初始状态)");
+	
+	// 测试字符串的 at() 方法
+	assert(vs.at(0) == "first");
+	assert(vs.at(2) == "third");
+	
+	// 修改字符串
+	vs.at(1) = "modified_second";
+	assert(vs.at(1) == "modified_second");
+	
+	// 测试 front() 和 back()
+	assert(vs.front() == "first");
+	assert(vs.back() == "third");
+	
+	vs.front() = "new_first";
+	vs.back() = "new_third";
+	assert(vs.front() == "new_first");
+	assert(vs.back() == "new_third");
+	
+	// 测试 data() 与字符串
+	std::string* str_ptr = vs.data();
+	assert(str_ptr != nullptr);
+	assert(*str_ptr == vs[0]);
+	
+	// 通过指针修改字符串
+	*str_ptr = "pointer_modified";
+	assert(vs[0] == "pointer_modified");
+	
+	print_info(vs, "vs (最终状态)");
+	std::cout << "字符串元素访问测试通过!" << std::endl;
+}
+
 int main()
 {
 	test_constructors();
@@ -491,6 +647,9 @@ int main()
 	test_reverse_iterators();
 	test_reverse_iterators_with_strings();
 	test_reverse_iterators_edge_cases();
+	test_element_access();
+	test_empty_container_access();
+	test_string_element_access();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;

@@ -45,6 +45,14 @@ public:
 	// 元素访问
 	reference operator[](size_type index);
 	const_reference operator[](size_type index) const;
+	reference at(size_type index);
+	const_reference at(size_type index) const;
+	reference front();
+	const_reference front() const;
+	reference back();
+	const_reference back() const;
+	pointer data();
+	const_pointer data() const;
 
 	// 修改器
 	void push_back(const T& value);                // 拷贝版本
@@ -209,6 +217,86 @@ typename vector<T>::const_reference vector<T>::operator[](size_type index) const
 		throw std::out_of_range("Index out of range");
 	}
 	return m_elements[index];
+}
+
+// 带边界检查的元素访问
+template<typename T>
+typename vector<T>::reference vector<T>::at(size_type index)
+{
+	if (index >= m_size)
+	{
+		throw std::out_of_range("vector::at: index out of range");
+	}
+	return m_elements[index];
+}
+
+// const版本的带边界检查的元素访问
+template<typename T>
+typename vector<T>::const_reference vector<T>::at(size_type index) const
+{
+	if (index >= m_size)
+	{
+		throw std::out_of_range("vector::at: index out of range");
+	}
+	return m_elements[index];
+}
+
+// 访问第一个元素
+template<typename T>
+typename vector<T>::reference vector<T>::front()
+{
+	if (m_size == 0)
+	{
+		throw std::out_of_range("vector::front: container is empty");
+	}
+	return m_elements[0];
+}
+
+// const版本的访问第一个元素
+template<typename T>
+typename vector<T>::const_reference vector<T>::front() const
+{
+	if (m_size == 0)
+	{
+		throw std::out_of_range("vector::front: container is empty");
+	}
+	return m_elements[0];
+}
+
+// 访问最后一个元素
+template<typename T>
+typename vector<T>::reference vector<T>::back()
+{
+	if (m_size == 0)
+	{
+		throw std::out_of_range("vector::back: container is empty");
+	}
+	return m_elements[m_size - 1];
+}
+
+// const版本的访问最后一个元素
+template<typename T>
+typename vector<T>::const_reference vector<T>::back() const
+{
+	if (m_size == 0)
+	{
+		throw std::out_of_range("vector::back: container is empty");
+	}
+	return m_elements[m_size - 1];
+}
+
+// 返回指向底层数组的指针
+template<typename T>
+typename vector<T>::pointer vector<T>::data()
+{
+	return m_elements;
+}
+
+// const版本的返回指向底层数组的指针
+template<typename T>
+typename vector<T>::const_pointer vector<T>::data() const
+{
+	return m_elements;
 }
 
 // 在容器末尾添加元素 - 拷贝版本
