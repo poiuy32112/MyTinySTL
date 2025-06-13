@@ -4,21 +4,24 @@
 #include <string>
 #include <stdexcept>
 #include <utility>   // for std::move and std::forward
+#include "iterator.h"
 
 template <typename T>
 class vector
 {
 public:
 	// 标准STL类型定义
-	typedef T                               value_type;
-	typedef T*                              pointer;
-	typedef const T*                        const_pointer;
-	typedef T&                              reference;
-	typedef const T&                        const_reference;
-	typedef size_t                          size_type;
-	typedef ptrdiff_t                       difference_type;
-	typedef T*                              iterator;
-	typedef const T*                        const_iterator;
+	typedef T                                   value_type;
+	typedef T*                                  pointer;
+	typedef const T*                            const_pointer;
+	typedef T&                                  reference;
+	typedef const T&                            const_reference;
+	typedef size_t                              size_type;
+	typedef ptrdiff_t                           difference_type;
+	typedef T*                                  iterator;
+	typedef const T*                            const_iterator;
+	typedef reverse_iterator<iterator>          reverse_iterator_type;
+	typedef reverse_iterator<const_iterator>    const_reverse_iterator;
 
 private:
 	iterator m_elements;     // 指向动态数组的指针
@@ -65,6 +68,12 @@ public:
 	iterator end();
 	const_iterator begin() const;
 	const_iterator end() const;
+
+	// 反向迭代器
+	reverse_iterator_type rbegin();
+	reverse_iterator_type rend();
+	const_reverse_iterator rbegin() const;
+	const_reverse_iterator rend() const;
 
 	// 辅助函数
 	void printElements() const;
@@ -461,6 +470,34 @@ template<typename T>
 typename vector<T>::const_iterator vector<T>::end() const
 {
 	return m_elements + m_size;
+}
+
+// 反向迭代器指向容器的反向开始位置
+template<typename T>
+typename vector<T>::reverse_iterator_type vector<T>::rbegin()
+{
+	return reverse_iterator_type(end());
+}
+
+// 反向迭代器指向容器的反向结束位置
+template<typename T>
+typename vector<T>::reverse_iterator_type vector<T>::rend()
+{
+	return reverse_iterator_type(begin());
+}
+
+// 反向迭代器指向容器的反向开始位置（const版本）
+template<typename T>
+typename vector<T>::const_reverse_iterator vector<T>::rbegin() const
+{
+	return const_reverse_iterator(end());
+}
+
+// 反向迭代器指向容器的反向结束位置（const版本）
+template<typename T>
+typename vector<T>::const_reverse_iterator vector<T>::rend() const
+{
+	return const_reverse_iterator(begin());
 }
 
 // 打印容器中的元素

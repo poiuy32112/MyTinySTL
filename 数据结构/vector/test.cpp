@@ -319,6 +319,166 @@ void test_erase_with_strings()
 	print_info(vs, "vs (范围删除后)");
 }
 
+// 8. 测试反向迭代器
+void test_reverse_iterators()
+{
+	std::cout << "\n=== 8. 测试反向迭代器 ===\n";
+	
+	// 创建测试vector
+	vector<int> v;
+	for(int i = 1; i <= 5; ++i) {
+		v.push_back(i);  // [1, 2, 3, 4, 5]
+	}
+	print_info(v, "v (初始状态)");
+	
+	// 测试基础反向迭代
+	std::cout << "反向遍历元素: ";
+	for(auto it = v.rbegin(); it != v.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 测试 const 反向迭代器
+	const vector<int>& cv = v;
+	std::cout << "const反向遍历元素: ";
+	for(auto it = cv.rbegin(); it != cv.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 测试反向迭代器的修改操作
+	for(auto it = v.rbegin(); it != v.rend(); ++it) {
+		*it *= 10;  // 将每个元素乘以10
+	}
+	std::cout << "修改后反向遍历: ";
+	for(auto it = v.rbegin(); it != v.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	print_info(v, "v (修改后)");
+	
+	// 测试反向迭代器的算术操作
+	auto it = v.rbegin();
+	assert(*it == 50);  // 最后一个元素
+	
+	++it;
+	assert(*it == 40);  // 倒数第二个元素
+	
+	it += 2;
+	assert(*it == 20);  // 倒数第四个元素
+	
+	--it;
+	assert(*it == 30);  // 倒数第三个元素
+	
+	it -= 1;
+	assert(*it == 40);  // 倒数第二个元素
+	
+	// 测试反向迭代器的随机访问
+	auto start_it = v.rbegin();
+	assert(start_it[0] == 50);  // 第一个（最后一个）
+	assert(start_it[1] == 40);  // 第二个（倒数第二个）
+	assert(start_it[4] == 10);  // 第五个（第一个）
+	
+	// 测试反向迭代器的比较操作
+	auto it1 = v.rbegin();
+	auto it2 = v.rbegin();
+	auto it3 = v.rend();
+	
+	assert(it1 == it2);
+	assert(it1 != it3);
+	assert(it1 < it3);
+	assert(it3 > it1);
+	assert(it1 <= it2);
+	assert(it1 >= it2);
+	
+	// 测试反向迭代器的距离计算
+	auto distance = v.rend() - v.rbegin();
+	assert(distance == static_cast<ptrdiff_t>(v.getSize()));
+	
+	std::cout << "反向迭代器基础测试通过!" << std::endl;
+}
+
+// 9. 测试反向迭代器与string类型
+void test_reverse_iterators_with_strings()
+{
+	std::cout << "\n=== 9. 测试反向迭代器与string类型 ===\n";
+	
+	vector<std::string> vs;
+	vs.push_back("first");
+	vs.push_back("second");
+	vs.push_back("third");
+	vs.push_back("fourth");
+	print_info(vs, "vs (初始状态)");
+	
+	// 反向遍历字符串
+	std::cout << "反向遍历字符串: ";
+	for(auto it = vs.rbegin(); it != vs.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 使用反向迭代器修改字符串
+	for(auto it = vs.rbegin(); it != vs.rend(); ++it) {
+		*it = "modified_" + *it;
+	}
+	
+	std::cout << "修改后反向遍历: ";
+	for(auto it = vs.rbegin(); it != vs.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	print_info(vs, "vs (修改后)");
+	
+	// 测试指针访问
+	auto it = vs.rbegin();
+	std::cout << "使用->访问: " << it->length() << " (长度)" << std::endl;
+	
+	std::cout << "反向迭代器字符串测试通过!" << std::endl;
+}
+
+// 10. 测试反向迭代器的边界情况
+void test_reverse_iterators_edge_cases()
+{
+	std::cout << "\n=== 10. 测试反向迭代器的边界情况 ===\n";
+	
+	// 空vector的反向迭代器
+	vector<int> empty_v;
+	assert(empty_v.rbegin() == empty_v.rend());
+	std::cout << "空vector反向迭代器相等测试通过!" << std::endl;
+	
+	// 单元素vector
+	vector<int> single_v;
+	single_v.push_back(42);
+	
+	auto it = single_v.rbegin();
+	assert(*it == 42);
+	++it;
+	assert(it == single_v.rend());
+	std::cout << "单元素vector反向迭代器测试通过!" << std::endl;
+	
+	// 测试反向迭代器与正向迭代器的关系
+	vector<int> v;
+	for(int i = 1; i <= 3; ++i) {
+		v.push_back(i);  // [1, 2, 3]
+	}
+	
+	// rbegin应该指向最后一个元素
+	assert(*v.rbegin() == *std::prev(v.end()));
+	// rend应该指向第一个元素之前的位置
+	assert(v.rend().base() == v.begin());
+	
+	std::cout << "反向迭代器与正向迭代器关系测试通过!" << std::endl;
+	
+	// 使用基于范围的for循环（C++11）进行反向遍历的替代方案
+	std::cout << "反向遍历 (手动): ";
+	for(auto it = v.rbegin(); it != v.rend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	std::cout << "反向迭代器边界情况测试通过!" << std::endl;
+}
+
 int main()
 {
 	test_constructors();
@@ -328,6 +488,9 @@ int main()
 	test_string_vector();
 	test_erase();
 	test_erase_with_strings();
+	test_reverse_iterators();
+	test_reverse_iterators_with_strings();
+	test_reverse_iterators_edge_cases();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;
