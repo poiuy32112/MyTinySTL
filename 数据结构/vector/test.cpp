@@ -119,18 +119,21 @@ void test_modifiers_and_capacity()
 	assert(v.getSize() == 3);
 	print_info(v, "v (emplace_back 后)");
 	
-	// 测试 insert
-	v.insert(1, 99); // 在中间插入
+	// 测试 insert（使用迭代器版本）
+	auto it1 = v.insert(v.begin() + 1, 99); // 在中间插入
 	assert(v.getSize() == 4);
 	assert(v[1] == 99 && v[2] == 2);
-	print_info(v, "v (insert(1, 99)后)");
+	assert(*it1 == 99);  // 检查返回的迭代器
+	print_info(v, "v (insert在位置1插入99后)");
 	
-	v.insert(0, 88); // 在头部插入
+	auto it2 = v.insert(v.begin(), 88); // 在头部插入
 	assert(v[0] == 88);
-	print_info(v, "v (insert(0, 88)后)");
+	assert(*it2 == 88);
+	print_info(v, "v (insert在头部插入88后)");
 	
-	v.insert(v.getSize(), 77); // 在尾部插入
+	auto it3 = v.insert(v.end(), 77); // 在尾部插入
 	assert(v[v.getSize() - 1] == 77);
+	assert(*it3 == 77);
 	print_info(v, "v (尾部insert后)");
 	
 	// 测试 pop_back
@@ -194,8 +197,9 @@ void test_string_vector()
 	print_info(vs, "vs (emplace_back后)");
 	
 	// 测试 insert (移动版本)
-	vs.insert(0, "Start");
+	auto insert_it = vs.insert(vs.begin(), "Start");
 	assert(vs[0] == "Start");
+	assert(*insert_it == "Start");
 	print_info(vs, "vs (insert后)");
 	
 	// 测试拷贝构造
@@ -223,44 +227,51 @@ void test_erase()
 	}
 	print_info(v, "v (初始状态)");
 	
-	// 测试删除中间元素
-	v.erase(5);  // 删除值为5的元素
+	// 测试删除中间元素（使用迭代器版本）
+	auto erase_it1 = v.erase(v.begin() + 5);  // 删除索引5的元素
 	assert(v.getSize() == 9);
 	assert(v[5] == 6);  // 原来的6现在位于索引5
+	assert(erase_it1 == v.begin() + 5);  // 检查返回的迭代器
 	print_info(v, "v (删除索引5后)");  // [0, 1, 2, 3, 4, 6, 7, 8, 9]
 	
 	// 测试删除第一个元素
-	v.erase(0);
+	auto erase_it2 = v.erase(v.begin());
 	assert(v.getSize() == 8);
 	assert(v[0] == 1);
-	print_info(v, "v (删除索引0后)");  // [1, 2, 3, 4, 6, 7, 8, 9]
+	assert(erase_it2 == v.begin());
+	print_info(v, "v (删除第一个元素后)");  // [1, 2, 3, 4, 6, 7, 8, 9]
 	
 	// 测试删除最后一个元素
-	v.erase(v.getSize() - 1);
+	auto erase_it3 = v.erase(v.end() - 1);
 	assert(v.getSize() == 7);
 	assert(v[v.getSize() - 1] == 8);
+	assert(erase_it3 == v.end());  // 删除最后元素后，迭代器指向新的end
 	print_info(v, "v (删除最后元素后)");  // [1, 2, 3, 4, 6, 7, 8]
 	
 	// 测试范围删除 - 删除中间几个元素
-	v.erase(2, 5);  // 删除索引2到4的元素 [3, 4, 6]
+	auto erase_it4 = v.erase(v.begin() + 2, v.begin() + 5);  // 删除索引2到4的元素 [3, 4, 6]
 	assert(v.getSize() == 4);
 	assert(v[0] == 1 && v[1] == 2 && v[2] == 7 && v[3] == 8);
-	print_info(v, "v (删除范围[2,5)后)");  // [1, 2, 7, 8]
+	assert(erase_it4 == v.begin() + 2);  // 检查返回的迭代器
+	print_info(v, "v (删除范围后)");  // [1, 2, 7, 8]
 	
 	// 测试空范围删除
 	auto old_size = v.getSize();
-	v.erase(1, 1);  // 空范围，不应删除任何元素
+	auto empty_it = v.begin() + 1;
+	auto erase_it5 = v.erase(empty_it, empty_it);  // 空范围，不应删除任何元素
 	assert(v.getSize() == old_size);
+	assert(erase_it5 == empty_it);
 	print_info(v, "v (空范围删除后)");
 	
 	// 测试删除剩余所有元素
-	v.erase(0, v.getSize());
+	auto erase_it6 = v.erase(v.begin(), v.end());
 	assert(v.getSize() == 0);
+	assert(erase_it6 == v.end());
 	print_info(v, "v (删除全部元素后)");
 	
-	// 测试异常情况
+	// 测试异常情况（使用迭代器版本）
 	try {
-		v.erase(0);  // 对空vector删除
+		v.erase(v.begin());  // 对空vector删除
 		assert(false);  // 不应该到达这里
 	} catch (const std::out_of_range& e) {
 		std::cout << "成功捕获空vector删除异常: " << e.what() << std::endl;
@@ -272,21 +283,21 @@ void test_erase()
 	v.push_back(300);
 	
 	try {
-		v.erase(3);  // 越界删除
+		v.erase(v.end());  // 越界删除（end()位置）
 		assert(false);
 	} catch (const std::out_of_range& e) {
 		std::cout << "成功捕获越界删除异常: " << e.what() << std::endl;
 	}
 	
 	try {
-		v.erase(1, 5);  // 范围越界
+		v.erase(v.begin() + 1, v.end() + 1);  // 范围越界
 		assert(false);
 	} catch (const std::out_of_range& e) {
 		std::cout << "成功捕获范围越界异常: " << e.what() << std::endl;
 	}
 	
 	try {
-		v.erase(2, 1);  // 无效范围 (first > last)
+		v.erase(v.begin() + 2, v.begin() + 1);  // 无效范围 (first > last)
 		assert(false);
 	} catch (const std::out_of_range& e) {
 		std::cout << "成功捕获无效范围异常: " << e.what() << std::endl;
@@ -306,16 +317,18 @@ void test_erase_with_strings()
 	vs.push_back("function");
 	print_info(vs, "vs (初始状态)");
 	
-	// 删除中间字符串
-	vs.erase(2);  // 删除"test"
+	// 删除中间字符串（使用迭代器版本）
+	auto str_it1 = vs.erase(vs.begin() + 2);  // 删除"test"
 	assert(vs.getSize() == 4);
 	assert(vs[2] == "erase");
+	assert(str_it1 == vs.begin() + 2);
 	print_info(vs, "vs (删除'test'后)");
 	
 	// 范围删除
-	vs.erase(1, 3);  // 删除"world"和"erase"
+	auto str_it2 = vs.erase(vs.begin() + 1, vs.begin() + 3);  // 删除"world"和"erase"
 	assert(vs.getSize() == 2);
 	assert(vs[0] == "hello" && vs[1] == "function");
+	assert(str_it2 == vs.begin() + 1);
 	print_info(vs, "vs (范围删除后)");
 }
 
@@ -635,6 +648,111 @@ void test_string_element_access()
 	std::cout << "字符串元素访问测试通过!" << std::endl;
 }
 
+// 14. 专门测试迭代器版本的 insert 和 erase
+void test_iterator_insert_erase()
+{
+	std::cout << "\n=== 14. 专门测试迭代器版本的 insert 和 erase ===\n";
+	
+	vector<int> v;
+	for(int i = 0; i < 5; ++i) {
+		v.push_back(i * 10);  // [0, 10, 20, 30, 40]
+	}
+	print_info(v, "v (初始状态)");
+	
+	// 测试移动版本的 insert
+	int value = 99;
+	auto it1 = v.insert(v.begin() + 2, std::move(value));
+	assert(*it1 == 99);
+	assert(v[2] == 99);
+	print_info(v, "v (移动insert后)");
+	
+	// 测试在多个位置插入
+	auto it2 = v.insert(v.begin(), -1);     // 头部插入
+	auto it3 = v.insert(v.end(), 999);      // 尾部插入
+	assert(*it2 == -1 && v[0] == -1);
+	assert(*it3 == 999 && v[v.getSize()-1] == 999);
+	print_info(v, "v (头尾插入后)");
+	
+	// 测试连续删除
+	auto erase_it1 = v.erase(v.begin());          // 删除头部
+	auto erase_it2 = v.erase(v.end() - 1);        // 删除尾部
+	assert(v[0] == 0);  // 原来的第二个元素现在是第一个
+	print_info(v, "v (删除头尾后)");
+	
+	// 测试批量删除
+	auto erase_it3 = v.erase(v.begin() + 1, v.begin() + 4);  // 删除中间三个元素
+	assert(erase_it3 == v.begin() + 1);
+	print_info(v, "v (批量删除后)");
+	
+	// 测试 insert 返回值的正确性
+	auto current_size = v.getSize();
+	auto insert_pos = v.begin() + 1;
+	auto result_it = v.insert(insert_pos, 555);
+	assert(result_it == v.begin() + 1);
+	assert(*result_it == 555);
+	assert(v.getSize() == current_size + 1);
+	print_info(v, "v (验证insert返回值后)");
+	
+	// 测试 erase 返回值的正确性
+	auto erase_pos = v.begin() + 1;
+	auto result_erase_it = v.erase(erase_pos);
+	assert(result_erase_it == v.begin() + 1);
+	assert(v.getSize() == current_size);
+	print_info(v, "v (验证erase返回值后)");
+	
+	std::cout << "迭代器版本insert和erase测试通过!" << std::endl;
+}
+
+// 15. 测试 insert 和 erase 的异常安全性
+void test_insert_erase_exceptions()
+{
+	std::cout << "\n=== 15. 测试 insert 和 erase 的异常安全性 ===\n";
+	
+	vector<int> v;
+	v.push_back(1);
+	v.push_back(2);
+	v.push_back(3);
+	
+	// 测试无效迭代器的异常
+	try {
+		v.insert(v.end() + 1, 100);  // 超出范围的迭代器
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获insert越界异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		v.insert(v.begin() - 1, 100);  // 超出范围的迭代器
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获insert越界异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		v.erase(v.end());  // end()位置无法删除
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获erase越界异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		v.erase(v.begin() - 1);  // 超出范围的迭代器
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获erase越界异常: " << e.what() << std::endl;
+	}
+	
+	// 测试无效范围
+	try {
+		v.erase(v.begin() + 2, v.begin() + 1);  // first > last
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获无效范围异常: " << e.what() << std::endl;
+	}
+	
+	std::cout << "insert和erase异常安全性测试通过!" << std::endl;
+}
+
 int main()
 {
 	test_constructors();
@@ -650,6 +768,8 @@ int main()
 	test_element_access();
 	test_empty_container_access();
 	test_string_element_access();
+	test_iterator_insert_erase();
+	test_insert_erase_exceptions();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;

@@ -60,10 +60,10 @@ public:
 	void pop_back();
 	template<typename... Args>
 	void emplace_back(Args&&... args);
-	void insert(size_type index, const T& value);  // 拷贝版本
-	void insert(size_type index, T&& value);       // 移动版本
-	iterator erase(size_type index);               // 删除单个元素
-	iterator erase(size_type first, size_type last); // 删除范围元素
+	iterator insert(iterator pos, const T& value);  // 拷贝版本
+	iterator insert(iterator pos, T&& value);       // 移动版本
+	iterator erase(iterator pos);                   // 删除单个元素
+	iterator erase(iterator first, iterator last);  // 删除范围元素
 	void clear();
 
 	// 容量
@@ -357,12 +357,15 @@ void vector<T>::emplace_back(Args&&... args)
 
 // 在指定位置插入元素 - 拷贝版本
 template<typename T>
-void vector<T>::insert(size_type index, const T& value)
+typename vector<T>::iterator vector<T>::insert(iterator pos, const T& value)
 {
-	if (index > m_size)
+	// 检查迭代器有效性
+	if (pos < begin() || pos > end())
 	{
-		throw std::out_of_range("Index out of range");
+		throw std::out_of_range("Iterator out of range");
 	}
+
+	size_type index = pos - begin();  // 将迭代器转换为索引
 
 	if (m_size == m_capacity)
 	{
@@ -380,16 +383,22 @@ void vector<T>::insert(size_type index, const T& value)
 	// 在指定位置构造新元素
 	new (&m_elements[index]) T(value);
 	++m_size;
+
+	// 返回指向插入元素的迭代器
+	return begin() + index;
 }
 
 // 在指定位置插入元素 - 移动版本 (C++11)
 template<typename T>
-void vector<T>::insert(size_type index, T&& value)
+typename vector<T>::iterator vector<T>::insert(iterator pos, T&& value)
 {
-	if (index > m_size)
+	// 检查迭代器有效性
+	if (pos < begin() || pos > end())
 	{
-		throw std::out_of_range("Index out of range");
+		throw std::out_of_range("Iterator out of range");
 	}
+
+	size_type index = pos - begin();  // 将迭代器转换为索引
 
 	if (m_size == m_capacity)
 	{
@@ -407,16 +416,22 @@ void vector<T>::insert(size_type index, T&& value)
 	// 在指定位置移动构造新元素
 	new (&m_elements[index]) T(std::move(value));
 	++m_size;
+
+	// 返回指向插入元素的迭代器
+	return begin() + index;
 }
 
 // 删除指定位置的单个元素
 template<typename T>
-typename vector<T>::iterator vector<T>::erase(size_type index)
+typename vector<T>::iterator vector<T>::erase(iterator pos)
 {
-	if (index >= m_size)
+	// 检查迭代器有效性
+	if (pos < begin() || pos >= end())
 	{
-		throw std::out_of_range("Index out of range");
+		throw std::out_of_range("Iterator out of range");
 	}
+
+	size_type index = pos - begin();  // 将迭代器转换为索引
 
 	// 销毁要删除的元素
 	m_elements[index].~T();
@@ -431,33 +446,36 @@ typename vector<T>::iterator vector<T>::erase(size_type index)
 	--m_size;
 
 	// 返回指向删除位置的迭代器
-	return m_elements + index;
+	return begin() + index;
 }
 
 // 删除指定范围的元素 [first, last)
 template<typename T>
-typename vector<T>::iterator vector<T>::erase(size_type first, size_type last)
+typename vector<T>::iterator vector<T>::erase(iterator first, iterator last)
 {
-	if (first > m_size || last > m_size || first > last)
+	// 检查迭代器有效性
+	if (first < begin() || last > end() || first > last)
 	{
-		throw std::out_of_range("Invalid range");
+		throw std::out_of_range("Invalid iterator range");
 	}
 
 	if (first == last)
 	{
-		return m_elements + first;  // 空范围，直接返回
+		return first;  // 空范围，直接返回
 	}
 
-	size_type erase_count = last - first;
+	size_type start_index = first - begin();
+	size_type end_index = last - begin();
+	size_type erase_count = end_index - start_index;
 
 	// 销毁要删除范围内的元素
-	for (size_type i = first; i < last; ++i)
+	for (size_type i = start_index; i < end_index; ++i)
 	{
 		m_elements[i].~T();
 	}
 
 	// 将后面的元素向前移动
-	for (size_type i = first; i < m_size - erase_count; ++i)
+	for (size_type i = start_index; i < m_size - erase_count; ++i)
 	{
 		new (&m_elements[i]) T(std::move(m_elements[i + erase_count]));
 		m_elements[i + erase_count].~T();
@@ -466,7 +484,7 @@ typename vector<T>::iterator vector<T>::erase(size_type first, size_type last)
 	m_size -= erase_count;
 
 	// 返回指向删除开始位置的迭代器
-	return m_elements + first;
+	return begin() + start_index;
 }
 
 // 清空容器 - 显式调用析构函数
