@@ -211,23 +211,123 @@ void test_string_vector()
 	print_info(vs2, "vs2 (被移动后)");
 }
 
+// 6. 测试erase函数
+void test_erase()
+{
+	std::cout << "\n=== 6. 测试erase函数 ===\n";
+	
+	// 创建测试vector
+	vector<int> v;
+	for(int i = 0; i < 10; ++i) {
+		v.push_back(i);  // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+	}
+	print_info(v, "v (初始状态)");
+	
+	// 测试删除中间元素
+	v.erase(5);  // 删除值为5的元素
+	assert(v.getSize() == 9);
+	assert(v[5] == 6);  // 原来的6现在位于索引5
+	print_info(v, "v (删除索引5后)");  // [0, 1, 2, 3, 4, 6, 7, 8, 9]
+	
+	// 测试删除第一个元素
+	v.erase(0);
+	assert(v.getSize() == 8);
+	assert(v[0] == 1);
+	print_info(v, "v (删除索引0后)");  // [1, 2, 3, 4, 6, 7, 8, 9]
+	
+	// 测试删除最后一个元素
+	v.erase(v.getSize() - 1);
+	assert(v.getSize() == 7);
+	assert(v[v.getSize() - 1] == 8);
+	print_info(v, "v (删除最后元素后)");  // [1, 2, 3, 4, 6, 7, 8]
+	
+	// 测试范围删除 - 删除中间几个元素
+	v.erase(2, 5);  // 删除索引2到4的元素 [3, 4, 6]
+	assert(v.getSize() == 4);
+	assert(v[0] == 1 && v[1] == 2 && v[2] == 7 && v[3] == 8);
+	print_info(v, "v (删除范围[2,5)后)");  // [1, 2, 7, 8]
+	
+	// 测试空范围删除
+	auto old_size = v.getSize();
+	v.erase(1, 1);  // 空范围，不应删除任何元素
+	assert(v.getSize() == old_size);
+	print_info(v, "v (空范围删除后)");
+	
+	// 测试删除剩余所有元素
+	v.erase(0, v.getSize());
+	assert(v.getSize() == 0);
+	print_info(v, "v (删除全部元素后)");
+	
+	// 测试异常情况
+	try {
+		v.erase(0);  // 对空vector删除
+		assert(false);  // 不应该到达这里
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获空vector删除异常: " << e.what() << std::endl;
+	}
+	
+	// 重新填充数据测试越界
+	v.push_back(100);
+	v.push_back(200);
+	v.push_back(300);
+	
+	try {
+		v.erase(3);  // 越界删除
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获越界删除异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		v.erase(1, 5);  // 范围越界
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获范围越界异常: " << e.what() << std::endl;
+	}
+	
+	try {
+		v.erase(2, 1);  // 无效范围 (first > last)
+		assert(false);
+	} catch (const std::out_of_range& e) {
+		std::cout << "成功捕获无效范围异常: " << e.what() << std::endl;
+	}
+}
+
+// 7. 测试erase函数与string类型
+void test_erase_with_strings()
+{
+	std::cout << "\n=== 7. 测试erase函数与string类型 ===\n";
+	
+	vector<std::string> vs;
+	vs.push_back("hello");
+	vs.push_back("world");
+	vs.push_back("test");
+	vs.push_back("erase");
+	vs.push_back("function");
+	print_info(vs, "vs (初始状态)");
+	
+	// 删除中间字符串
+	vs.erase(2);  // 删除"test"
+	assert(vs.getSize() == 4);
+	assert(vs[2] == "erase");
+	print_info(vs, "vs (删除'test'后)");
+	
+	// 范围删除
+	vs.erase(1, 3);  // 删除"world"和"erase"
+	assert(vs.getSize() == 2);
+	assert(vs[0] == "hello" && vs[1] == "function");
+	print_info(vs, "vs (范围删除后)");
+}
 
 int main()
 {
-    std::cout << "11-----------\n";
-    int val = 3;
-    int* p = new int(val);
-    std::cout << *p << std::endl;
-    //p = nullptr;
-    delete p;
-    //p = nullptr;
-    delete p;
-
 	test_constructors();
 	test_assignments();
 	test_modifiers_and_capacity();
 	test_edge_cases();
 	test_string_vector();
+	test_erase();
+	test_erase_with_strings();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;
