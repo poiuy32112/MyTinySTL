@@ -24,9 +24,9 @@ public:
 	typedef reverse_iterator<const_iterator>    const_reverse_iterator;
 
 private:
-	iterator m_elements;     // 指向动态数组的指针
-	size_type m_capacity;    // 容器的容量
-	size_type m_size;        // 容器中元素的个数
+	iterator m_begin;        // 使用空间的头部
+	iterator m_end;          // 使用空间的尾部
+	iterator m_cap;          // 存储空间的尾部
 
 public:
 	// 构造函数和析构函数
@@ -95,43 +95,45 @@ void swap(vector<T>& lhs, vector<T>& rhs) noexcept;
 
 // 默认构造函数
 template<typename T>
-vector<T>::vector() : m_elements(nullptr), m_capacity(0), m_size(0) {}
+vector<T>::vector() : m_begin(nullptr), m_end(nullptr), m_cap(nullptr) {}
 
 // 析构函数
 template<typename T>
 vector<T>::~vector()
 {
 	clear();  // 显式调用析构函数
-	delete[] m_elements;
+	delete[] m_begin;
 }
 
 // 拷贝构造函数 - 异常安全版本
 template<typename T>
-vector<T>::vector(const vector& other) : m_elements(nullptr), m_capacity(0), m_size(0)
+vector<T>::vector(const vector& other) : m_begin(nullptr), m_end(nullptr), m_cap(nullptr)
 {
-	if (other.m_size > 0)
+	size_type other_size = other.m_end - other.m_begin;
+	if (other_size > 0)
 	{
+		size_type other_capacity = other.m_cap - other.m_begin;
 		// 先分配内存
-		m_elements = new T[other.m_capacity];
-		m_capacity = other.m_capacity;
+		m_begin = new T[other_capacity];
+		m_end = m_begin;
+		m_cap = m_begin + other_capacity;
 
 		// 逐个拷贝元素，若失败则回滚并释放资源
 		try
 		{
-			for (size_type i = 0; i < other.m_size; ++i)
+			for (iterator src_it = other.m_begin; src_it != other.m_end; ++src_it, ++m_end)
 			{
-				new (&m_elements[i]) T(other.m_elements[i]);  // 使用拷贝构造
-				++m_size;  // 只有构造成功才增加计数
+				new (m_end) T(*src_it);  // 使用拷贝构造
 			}
 		}
 		catch (...)
 		{
 			// 异常安全：销毁已构造的元素
 			clear();
-			delete[] m_elements;
-			m_elements = nullptr;
-			m_capacity = 0;
-			m_size = 0;
+			delete[] m_begin;
+			m_begin = nullptr;
+			m_end = nullptr;
+			m_cap = nullptr;
 			throw;  // 重新抛出异常
 		}
 	}
@@ -140,14 +142,14 @@ vector<T>::vector(const vector& other) : m_elements(nullptr), m_capacity(0), m_s
 // 移动构造函数 (C++11) - noexcept 保证
 template<typename T>
 vector<T>::vector(vector&& other) noexcept
-	: m_elements(other.m_elements)
-	, m_capacity(other.m_capacity)
-	, m_size(other.m_size)
+	: m_begin(other.m_begin)
+	, m_end(other.m_end)
+	, m_cap(other.m_cap)
 {
 	// 将源对象置为有效但未指定的状态
-	other.m_elements = nullptr;
-	other.m_capacity = 0;
-	other.m_size = 0;
+	other.m_begin = nullptr;
+	other.m_end = nullptr;
+	other.m_cap = nullptr;
 }
 
 // 拷贝赋值运算符 - 使用 copy-and-swap 惯用法
@@ -171,17 +173,17 @@ vector<T>& vector<T>::operator=(vector&& other) noexcept
 	{
 		// 清理当前对象的资源
 		clear();
-		delete[] m_elements;
+		delete[] m_begin;
 
 		// 移动资源
-		m_elements = other.m_elements;
-		m_capacity = other.m_capacity;
-		m_size = other.m_size;
+		m_begin = other.m_begin;
+		m_end = other.m_end;
+		m_cap = other.m_cap;
 
 		// 将源对象置为有效但未指定的状态
-		other.m_elements = nullptr;
-		other.m_capacity = 0;
-		other.m_size = 0;
+		other.m_begin = nullptr;
+		other.m_end = nullptr;
+		other.m_cap = nullptr;
 	}
 	return *this;
 }
@@ -190,9 +192,9 @@ vector<T>& vector<T>::operator=(vector&& other) noexcept
 template<typename T>
 void vector<T>::swap(vector& other) noexcept
 {
-	std::swap(m_elements, other.m_elements);
-	std::swap(m_capacity, other.m_capacity);
-	std::swap(m_size, other.m_size);
+	std::swap(m_begin, other.m_begin);
+	std::swap(m_end, other.m_end);
+	std::swap(m_cap, other.m_cap);
 }
 
 // 访问容器中的元素
@@ -200,11 +202,11 @@ template<typename T>
 typename vector<T>::reference vector<T>::operator[](size_type index)
 {
 	// 检查索引是否越界
-	if (index >= m_size)
+	if (index >= static_cast<size_type>(m_end - m_begin))
 	{
 		throw std::out_of_range("Index out of range");
 	}
-	return m_elements[index];
+	return m_begin[index];
 }
 
 // const版本的访问容器中的元素
@@ -212,131 +214,133 @@ template<typename T>
 typename vector<T>::const_reference vector<T>::operator[](size_type index) const
 {
 	// 检查索引是否越界
-	if (index >= m_size)
+	if (index >= static_cast<size_type>(m_end - m_begin))
 	{
 		throw std::out_of_range("Index out of range");
 	}
-	return m_elements[index];
+	return m_begin[index];
 }
 
 // 带边界检查的元素访问
 template<typename T>
 typename vector<T>::reference vector<T>::at(size_type index)
 {
-	if (index >= m_size)
+	if (index >= static_cast<size_type>(m_end - m_begin))
 	{
 		throw std::out_of_range("vector::at: index out of range");
 	}
-	return m_elements[index];
+	return m_begin[index];
 }
 
 // const版本的带边界检查的元素访问
 template<typename T>
 typename vector<T>::const_reference vector<T>::at(size_type index) const
 {
-	if (index >= m_size)
+	if (index >= static_cast<size_type>(m_end - m_begin))
 	{
 		throw std::out_of_range("vector::at: index out of range");
 	}
-	return m_elements[index];
+	return m_begin[index];
 }
 
 // 访问第一个元素
 template<typename T>
 typename vector<T>::reference vector<T>::front()
 {
-	if (m_size == 0)
+	if (m_begin == m_end)
 	{
 		throw std::out_of_range("vector::front: container is empty");
 	}
-	return m_elements[0];
+	return *m_begin;
 }
 
 // const版本的访问第一个元素
 template<typename T>
 typename vector<T>::const_reference vector<T>::front() const
 {
-	if (m_size == 0)
+	if (m_begin == m_end)
 	{
 		throw std::out_of_range("vector::front: container is empty");
 	}
-	return m_elements[0];
+	return *m_begin;
 }
 
 // 访问最后一个元素
 template<typename T>
 typename vector<T>::reference vector<T>::back()
 {
-	if (m_size == 0)
+	if (m_begin == m_end)
 	{
 		throw std::out_of_range("vector::back: container is empty");
 	}
-	return m_elements[m_size - 1];
+	return *(m_end - 1);
 }
 
 // const版本的访问最后一个元素
 template<typename T>
 typename vector<T>::const_reference vector<T>::back() const
 {
-	if (m_size == 0)
+	if (m_begin == m_end)
 	{
 		throw std::out_of_range("vector::back: container is empty");
 	}
-	return m_elements[m_size - 1];
+	return *(m_end - 1);
 }
 
 // 返回指向底层数组的指针
 template<typename T>
 typename vector<T>::pointer vector<T>::data()
 {
-	return m_elements;
+	return m_begin;
 }
 
 // const版本的返回指向底层数组的指针
 template<typename T>
 typename vector<T>::const_pointer vector<T>::data() const
 {
-	return m_elements;
+	return m_begin;
 }
 
 // 在容器末尾添加元素 - 拷贝版本
 template<typename T>
 void vector<T>::push_back(const T& value)
 {
-	if (m_size == m_capacity)
+	if (m_end == m_cap)
 	{
 		// 如果容量不足，则扩展容量
-		reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
+		size_type current_capacity = m_cap - m_begin;
+		reserve(current_capacity == 0 ? 1 : 2 * current_capacity);
 	}
 
 	// 使用placement new在指定位置构造元素
-	new (&m_elements[m_size]) T(value);
-	++m_size;
+	new (m_end) T(value);
+	++m_end;
 }
 
 // 在容器末尾添加元素 - 移动版本 (C++11)
 template<typename T>
 void vector<T>::push_back(T&& value)
 {
-	if (m_size == m_capacity)
+	if (m_end == m_cap)
 	{
 		// 如果容量不足，则扩展容量
-		reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
+		size_type current_capacity = m_cap - m_begin;
+		reserve(current_capacity == 0 ? 1 : 2 * current_capacity);
 	}
 
 	// 使用移动构造在指定位置构造元素
-	new (&m_elements[m_size]) T(std::move(value));
-	++m_size;
+	new (m_end) T(std::move(value));
+	++m_end;
 }
 
 // 删除容器末尾的元素 - 显式析构
 template<typename T>
 void vector<T>::pop_back()
 {
-	if (m_size > 0)
+	if (m_begin != m_end)
 	{
-		m_elements[m_size - 1].~T();  // 显式调用析构函数
-		--m_size;
+		--m_end;
+		m_end->~T();  // 显式调用析构函数
 	}
 }
 
@@ -345,14 +349,15 @@ template<typename T>
 template<typename... Args>
 void vector<T>::emplace_back(Args&&... args)
 {
-	if (m_size == m_capacity)
+	if (m_end == m_cap)
 	{
 		// 如果容量不足，扩展容量
-		reserve(m_capacity == 0 ? 1 : 2 * m_capacity);
+		size_type current_capacity = m_cap - m_begin;
+		reserve(current_capacity == 0 ? 1 : 2 * current_capacity);
 	}
 	// 使用placement new在指定位置直接构造元素
-	new (&m_elements[m_size]) T(std::forward<Args>(args)...);
-	++m_size;
+	new (m_end) T(std::forward<Args>(args)...);
+	++m_end;
 }
 
 // 在指定位置插入元素 - 拷贝版本
@@ -360,32 +365,33 @@ template<typename T>
 typename vector<T>::iterator vector<T>::insert(iterator pos, const T& value)
 {
 	// 检查迭代器有效性
-	if (pos < begin() || pos > end())
+	if (pos < m_begin || pos > m_end)
 	{
 		throw std::out_of_range("Iterator out of range");
 	}
 
-	size_type index = pos - begin();  // 将迭代器转换为索引
+	size_type index = pos - m_begin;  // 将迭代器转换为索引
 
-	if (m_size == m_capacity)
+	if (m_end == m_cap)
 	{
 		// 需要扩容时，使用异常安全的 reserve
-		reserve(m_capacity == 0 ? 1 : m_capacity * 2);
+		size_type current_capacity = m_cap - m_begin;
+		reserve(current_capacity == 0 ? 1 : current_capacity * 2);
 	}
 
 	// 从后向前移动元素，为新元素腾出空间
-	for (size_type i = m_size; i > index; --i)
+	for (iterator it = m_end; it > m_begin + index; --it)
 	{
-		new (&m_elements[i]) T(std::move(m_elements[i - 1]));
-		m_elements[i - 1].~T();
+		new (it) T(std::move(*(it - 1)));
+		(it - 1)->~T();
 	}
 
 	// 在指定位置构造新元素
-	new (&m_elements[index]) T(value);
-	++m_size;
+	new (m_begin + index) T(value);
+	++m_end;
 
 	// 返回指向插入元素的迭代器
-	return begin() + index;
+	return m_begin + index;
 }
 
 // 在指定位置插入元素 - 移动版本 (C++11)
@@ -393,32 +399,33 @@ template<typename T>
 typename vector<T>::iterator vector<T>::insert(iterator pos, T&& value)
 {
 	// 检查迭代器有效性
-	if (pos < begin() || pos > end())
+	if (pos < m_begin || pos > m_end)
 	{
 		throw std::out_of_range("Iterator out of range");
 	}
 
-	size_type index = pos - begin();  // 将迭代器转换为索引
+	size_type index = pos - m_begin;  // 将迭代器转换为索引
 
-	if (m_size == m_capacity)
+	if (m_end == m_cap)
 	{
 		// 需要扩容时，使用异常安全的 reserve
-		reserve(m_capacity == 0 ? 1 : m_capacity * 2);
+		size_type current_capacity = m_cap - m_begin;
+		reserve(current_capacity == 0 ? 1 : current_capacity * 2);
 	}
 
 	// 从后向前移动元素，为新元素腾出空间
-	for (size_type i = m_size; i > index; --i)
+	for (iterator it = m_end; it > m_begin + index; --it)
 	{
-		new (&m_elements[i]) T(std::move(m_elements[i - 1]));
-		m_elements[i - 1].~T();
+		new (it) T(std::move(*(it - 1)));
+		(it - 1)->~T();
 	}
 
 	// 在指定位置移动构造新元素
-	new (&m_elements[index]) T(std::move(value));
-	++m_size;
+	new (m_begin + index) T(std::move(value));
+	++m_end;
 
 	// 返回指向插入元素的迭代器
-	return begin() + index;
+	return m_begin + index;
 }
 
 // 删除指定位置的单个元素
@@ -426,27 +433,25 @@ template<typename T>
 typename vector<T>::iterator vector<T>::erase(iterator pos)
 {
 	// 检查迭代器有效性
-	if (pos < begin() || pos >= end())
+	if (pos < m_begin || pos >= m_end)
 	{
 		throw std::out_of_range("Iterator out of range");
 	}
 
-	size_type index = pos - begin();  // 将迭代器转换为索引
-
 	// 销毁要删除的元素
-	m_elements[index].~T();
+	pos->~T();
 
 	// 将后面的元素向前移动
-	for (size_type i = index; i < m_size - 1; ++i)
+	for (iterator it = pos; it < m_end - 1; ++it)
 	{
-		new (&m_elements[i]) T(std::move(m_elements[i + 1]));
-		m_elements[i + 1].~T();
+		new (it) T(std::move(*(it + 1)));
+		(it + 1)->~T();
 	}
 
-	--m_size;
+	--m_end;
 
 	// 返回指向删除位置的迭代器
-	return begin() + index;
+	return pos;
 }
 
 // 删除指定范围的元素 [first, last)
@@ -454,7 +459,7 @@ template<typename T>
 typename vector<T>::iterator vector<T>::erase(iterator first, iterator last)
 {
 	// 检查迭代器有效性
-	if (first < begin() || last > end() || first > last)
+	if (first < m_begin || last > m_end || first > last)
 	{
 		throw std::out_of_range("Invalid iterator range");
 	}
@@ -464,69 +469,71 @@ typename vector<T>::iterator vector<T>::erase(iterator first, iterator last)
 		return first;  // 空范围，直接返回
 	}
 
-	size_type start_index = first - begin();
-	size_type end_index = last - begin();
-	size_type erase_count = end_index - start_index;
+	size_type erase_count = last - first;
 
 	// 销毁要删除范围内的元素
-	for (size_type i = start_index; i < end_index; ++i)
+	for (iterator it = first; it != last; ++it)
 	{
-		m_elements[i].~T();
+		it->~T();
 	}
 
 	// 将后面的元素向前移动
-	for (size_type i = start_index; i < m_size - erase_count; ++i)
+	for (iterator it = first; last != m_end; ++it, ++last)
 	{
-		new (&m_elements[i]) T(std::move(m_elements[i + erase_count]));
-		m_elements[i + erase_count].~T();
+		new (it) T(std::move(*last));
+		last->~T();
 	}
 
-	m_size -= erase_count;
+	m_end -= erase_count;
 
 	// 返回指向删除开始位置的迭代器
-	return begin() + start_index;
+	return first;
 }
 
 // 清空容器 - 显式调用析构函数
 template<typename T>
 void vector<T>::clear()
 {
-	for (size_type i = 0; i < m_size; ++i)
+	for (iterator it = m_begin; it != m_end; ++it)
 	{
-		m_elements[i].~T();  // 显式调用每个元素的析构函数
+		it->~T();  // 显式调用每个元素的析构函数
 	}
-	m_size = 0;
+	m_end = m_begin;
 }
 
 // 获取容器中元素的个数
 template<typename T>
 typename vector<T>::size_type vector<T>::getSize() const
 {
-	return m_size;
+	return m_end - m_begin;
 }
 
 // 获取容器的容量
 template<typename T>
 typename vector<T>::size_type vector<T>::getCapacity() const
 {
-	return m_capacity;
+	return m_cap - m_begin;
 }
 
 // 扩展容器容量 - 异常安全版本
 template<typename T>
 void vector<T>::reserve(size_type newCapacity)
 {
-	if (newCapacity > m_capacity)
+	size_type current_capacity = m_cap - m_begin;
+	if (newCapacity > current_capacity)
 	{
+		size_type current_size = m_end - m_begin;
+		
 		// 分配新内存
 		T* newElements = new T[newCapacity];
 
 		try
 		{
 			// 移动/拷贝旧元素到新内存
-			for (size_type i = 0; i < m_size; ++i)
+			size_type i = 0;
+			for (iterator it = m_begin; it != m_end; ++it, ++i)
 			{
-				new (&newElements[i]) T(std::move(m_elements[i]));
+				new (&newElements[i]) T(std::move(*it));
 			}
 		}
 		catch (...)
@@ -537,16 +544,17 @@ void vector<T>::reserve(size_type newCapacity)
 		}
 
 		// 成功后释放旧内存
-		// 手动销毁旧元素，但不重置 m_size
-		for (size_type i = 0; i < m_size; ++i)
+		// 手动销毁旧元素
+		for (iterator it = m_begin; it != m_end; ++it)
 		{
-			m_elements[i].~T();
+			it->~T();
 		}
-		delete[] m_elements;
+		delete[] m_begin;
 
-		// 更新指针和容量
-		m_elements = newElements;
-		m_capacity = newCapacity;
+		// 更新指针
+		m_begin = newElements;
+		m_end = m_begin + current_size;
+		m_cap = m_begin + newCapacity;
 	}
 }
 
@@ -554,65 +562,65 @@ void vector<T>::reserve(size_type newCapacity)
 template<typename T>
 typename vector<T>::iterator vector<T>::begin()
 {
-	return m_elements;
+	return m_begin;
 }
 
 // 使用的迭代器指向容器的结束位置
 template<typename T>
 typename vector<T>::iterator vector<T>::end()
 {
-	return m_elements + m_size;
+	return m_end;
 }
 
 // 使用的迭代器指向容器的开始位置（const版本）
 template<typename T>
 typename vector<T>::const_iterator vector<T>::begin() const
 {
-	return m_elements;
+	return m_begin;
 }
 
 // 使用的迭代器指向容器的结束位置（const版本）
 template<typename T>
 typename vector<T>::const_iterator vector<T>::end() const
 {
-	return m_elements + m_size;
+	return m_end;
 }
 
 // 反向迭代器指向容器的反向开始位置
 template<typename T>
 typename vector<T>::reverse_iterator_type vector<T>::rbegin()
 {
-	return reverse_iterator_type(end());
+	return reverse_iterator_type(m_end);
 }
 
 // 反向迭代器指向容器的反向结束位置
 template<typename T>
 typename vector<T>::reverse_iterator_type vector<T>::rend()
 {
-	return reverse_iterator_type(begin());
+	return reverse_iterator_type(m_begin);
 }
 
 // 反向迭代器指向容器的反向开始位置（const版本）
 template<typename T>
 typename vector<T>::const_reverse_iterator vector<T>::rbegin() const
 {
-	return const_reverse_iterator(end());
+	return const_reverse_iterator(m_end);
 }
 
 // 反向迭代器指向容器的反向结束位置（const版本）
 template<typename T>
 typename vector<T>::const_reverse_iterator vector<T>::rend() const
 {
-	return const_reverse_iterator(begin());
+	return const_reverse_iterator(m_begin);
 }
 
 // 打印容器中的元素
 template<typename T>
 void vector<T>::printElements() const
 {
-	for (size_type i = 0; i < m_size; ++i)
+	for (iterator it = m_begin; it != m_end; ++it)
 	{
-		std::cout << m_elements[i] << " ";
+		std::cout << *it << " ";
 	}
 	std::cout << std::endl;
 }
