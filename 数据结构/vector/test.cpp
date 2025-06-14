@@ -832,6 +832,250 @@ void test_capacity_and_resize()
 	std::cout << "容量管理和resize测试通过!" << std::endl;
 }
 
+// 17. 测试比较操作符重载
+void test_comparison_operators()
+{
+	std::cout << "\n=== 17. 测试比较操作符重载 ===\n";
+	
+	// 创建测试vectors
+	vector<int> v1;
+	vector<int> v2;
+	vector<int> v3;
+	
+	// 相同内容的vectors
+	for(int i = 1; i <= 3; ++i) {
+		v1.push_back(i);
+		v2.push_back(i);
+	}
+	
+	// 不同内容的vector
+	v3.push_back(1);
+	v3.push_back(2);
+	v3.push_back(4);  // 最后一个元素不同
+	
+	print_info(v1, "v1");
+	print_info(v2, "v2");
+	print_info(v3, "v3");
+	
+	// 测试相等比较
+	std::cout << "--- 测试相等比较 ---\n";
+	assert(v1 == v2);
+	assert(!(v1 == v3));
+	assert(!(v1 != v2));
+	assert(v1 != v3);
+	std::cout << "v1 == v2: " << (v1 == v2) << std::endl;
+	std::cout << "v1 == v3: " << (v1 == v3) << std::endl;
+	std::cout << "v1 != v3: " << (v1 != v3) << std::endl;
+	
+	// 测试大小比较
+	std::cout << "--- 测试大小比较 ---\n";
+	assert(v1 < v3);   // [1,2,3] < [1,2,4]
+	assert(!(v3 < v1));
+	assert(v3 > v1);
+	assert(!(v1 > v3));
+	assert(v1 <= v2);  // 相等情况
+	assert(v1 <= v3);  // 小于情况
+	assert(v2 >= v1);  // 相等情况
+	assert(v3 >= v1);  // 大于情况
+	
+	std::cout << "v1 < v3: " << (v1 < v3) << std::endl;
+	std::cout << "v3 > v1: " << (v3 > v1) << std::endl;
+	std::cout << "v1 <= v2: " << (v1 <= v2) << std::endl;
+	std::cout << "v3 >= v1: " << (v3 >= v1) << std::endl;
+	
+	// 测试不同长度的vectors
+	std::cout << "--- 测试不同长度的vectors ---\n";
+	vector<int> v_short;
+	vector<int> v_long;
+	
+	v_short.push_back(1);
+	v_short.push_back(2);
+	
+	v_long.push_back(1);
+	v_long.push_back(2);
+	v_long.push_back(3);
+	
+	assert(v_short != v_long);
+	assert(v_short < v_long);   // 短的vector小于长的vector（当前缀相同时）
+	assert(!(v_long < v_short));
+	assert(v_long > v_short);
+	assert(v_short <= v_long);
+	assert(v_long >= v_short);
+	
+	print_info(v_short, "v_short");
+	print_info(v_long, "v_long");
+	std::cout << "v_short < v_long: " << (v_short < v_long) << std::endl;
+	
+	// 测试空vectors
+	std::cout << "--- 测试空vectors ---\n";
+	vector<int> v_empty1;
+	vector<int> v_empty2;
+	
+	assert(v_empty1 == v_empty2);
+	assert(!(v_empty1 != v_empty2));
+	assert(!(v_empty1 < v_empty2));
+	assert(!(v_empty1 > v_empty2));
+	assert(v_empty1 <= v_empty2);
+	assert(v_empty1 >= v_empty2);
+	
+	// 空vector与非空vector比较
+	assert(v_empty1 != v1);
+	assert(v_empty1 < v1);
+	assert(!(v1 < v_empty1));
+	assert(v1 > v_empty1);
+	
+	std::cout << "空vector比较测试通过!" << std::endl;
+	
+	// 测试字符串vectors的比较
+	std::cout << "--- 测试字符串vectors的比较 ---\n";
+	vector<std::string> vs1;
+	vector<std::string> vs2;
+	vector<std::string> vs3;
+	
+	vs1.push_back("apple");
+	vs1.push_back("banana");
+	
+	vs2.push_back("apple");
+	vs2.push_back("banana");
+	
+	vs3.push_back("apple");
+	vs3.push_back("cherry");  // "cherry" > "banana"
+	
+	assert(vs1 == vs2);
+	assert(vs1 != vs3);
+	assert(vs1 < vs3);  // "banana" < "cherry"
+	assert(vs3 > vs1);
+	
+	print_info(vs1, "vs1");
+	print_info(vs3, "vs3");
+	std::cout << "vs1 < vs3: " << (vs1 < vs3) << std::endl;
+	
+	std::cout << "比较操作符重载测试通过!" << std::endl;
+}
+
+// 18. 测试const迭代器
+void test_const_iterators()
+{
+	std::cout << "\n=== 18. 测试const迭代器 ===\n";
+	
+	// 创建测试vector
+	vector<int> v;
+	for(int i = 10; i <= 50; i += 10) {
+		v.push_back(i);  // [10, 20, 30, 40, 50]
+	}
+	print_info(v, "v (初始状态)");
+	
+	// 测试 cbegin() 和 cend()
+	std::cout << "--- 测试 cbegin() 和 cend() ---\n";
+	std::cout << "使用cbegin()和cend()遍历: ";
+	for(auto it = v.cbegin(); it != v.cend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 验证cbegin()和cend()返回const_iterator
+	auto c_it = v.cbegin();
+	assert(*c_it == 10);
+	// c_it指向的内容不能修改（这在编译时检查）
+	// *c_it = 100;  // 这行如果取消注释会导致编译错误
+	
+	// 测试const vector的cbegin()和cend()
+	const vector<int>& cv = v;
+	std::cout << "const vector使用cbegin()和cend()遍历: ";
+	for(auto it = cv.cbegin(); it != cv.cend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 测试 crbegin() 和 crend()
+	std::cout << "--- 测试 crbegin() 和 crend() ---\n";
+	std::cout << "使用crbegin()和crend()反向遍历: ";
+	for(auto it = v.crbegin(); it != v.crend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 验证crbegin()和crend()返回const_reverse_iterator
+	auto cr_it = v.crbegin();
+	assert(*cr_it == 50);  // 最后一个元素
+	// cr_it指向的内容不能修改
+	// *cr_it = 500;  // 这行如果取消注释会导致编译错误
+	
+	// 测试const vector的crbegin()和crend()
+	std::cout << "const vector使用crbegin()和crend()反向遍历: ";
+	for(auto it = cv.crbegin(); it != cv.crend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 测试const迭代器的算术操作
+	std::cout << "--- 测试const迭代器的算术操作 ---\n";
+	auto c_begin = v.cbegin();
+	auto c_end = v.cend();
+	
+	// 测试距离计算
+	auto distance = c_end - c_begin;
+	assert(distance == static_cast<ptrdiff_t>(v.size()));
+	std::cout << "cend() - cbegin() = " << distance << std::endl;
+	
+	// 测试随机访问
+	auto c_it2 = c_begin + 2;
+	assert(*c_it2 == 30);
+	std::cout << "*(cbegin() + 2) = " << *c_it2 << std::endl;
+	
+	// 测试const反向迭代器的算术操作
+	auto cr_begin = v.crbegin();
+	auto cr_end = v.crend();
+	
+	auto cr_distance = cr_end - cr_begin;
+	assert(cr_distance == static_cast<ptrdiff_t>(v.size()));
+	std::cout << "crend() - crbegin() = " << cr_distance << std::endl;
+	
+	auto cr_it2 = cr_begin + 1;
+	assert(*cr_it2 == 40);  // 倒数第二个元素
+	std::cout << "*(crbegin() + 1) = " << *cr_it2 << std::endl;
+	
+	// 测试const迭代器与普通迭代器的兼容性
+	std::cout << "--- 测试const迭代器与普通迭代器的兼容性 ---\n";
+	assert(v.cbegin() == v.begin());
+	assert(v.cend() == v.end());
+	assert(v.crbegin() == v.rbegin());
+	assert(v.crend() == v.rend());
+	std::cout << "const迭代器与普通迭代器相等性测试通过!" << std::endl;
+	
+	// 测试空vector的const迭代器
+	std::cout << "--- 测试空vector的const迭代器 ---\n";
+	vector<int> empty_v;
+	assert(empty_v.cbegin() == empty_v.cend());
+	assert(empty_v.crbegin() == empty_v.crend());
+	std::cout << "空vector的const迭代器测试通过!" << std::endl;
+	
+	// 测试字符串vector的const迭代器
+	std::cout << "--- 测试字符串vector的const迭代器 ---\n";
+	vector<std::string> vs;
+	vs.push_back("first");
+	vs.push_back("second");
+	vs.push_back("third");
+	
+	std::cout << "字符串vector使用cbegin()和cend()遍历: ";
+	for(auto it = vs.cbegin(); it != vs.cend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	std::cout << "字符串vector使用crbegin()和crend()反向遍历: ";
+	for(auto it = vs.crbegin(); it != vs.crend(); ++it) {
+		std::cout << *it << " ";
+	}
+	std::cout << std::endl;
+	
+	// 测试const迭代器的指针访问
+	auto str_c_it = vs.cbegin();
+	std::cout << "使用const迭代器->访问字符串长度: " << str_c_it->length() << std::endl;
+	
+	std::cout << "const迭代器测试通过!" << std::endl;
+}
+
 int main()
 {
 	test_constructors();
@@ -850,6 +1094,8 @@ int main()
 	test_iterator_insert_erase();
 	test_insert_erase_exceptions();
 	test_capacity_and_resize();
+	test_comparison_operators();
+	test_const_iterators();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;

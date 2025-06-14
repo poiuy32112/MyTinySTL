@@ -151,3 +151,4 @@ auto operator-(const reverse_iterator<Iterator1>& lhs, const reverse_iterator<It
 {
     return rhs.base() - lhs.base();
 }
+

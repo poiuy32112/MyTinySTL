@@ -98,5 +98,8 @@
     <ClInclude Include="vector\vector2_6.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="vector\vector2_7.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

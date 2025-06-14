@@ -81,20 +81,45 @@ public:
 	void resize(size_type count, const T& value);
 
 	// 迭代器
-	iterator begin();
-	iterator end();
-	const_iterator begin() const;
-	const_iterator end() const;
+    iterator begin(){ return m_begin; };
+    iterator end() { return m_end; }
+    const_iterator begin() const { return m_begin; }
+    const_iterator end() const { return m_end; }
 
 	// 反向迭代器
-	reverse_iterator_type rbegin();
-	reverse_iterator_type rend();
-	const_reverse_iterator rbegin() const;
-	const_reverse_iterator rend() const;
+    reverse_iterator_type rbegin() { return reverse_iterator_type(m_end); }
+    reverse_iterator_type rend() { return reverse_iterator_type(m_begin); }
+    const_reverse_iterator rbegin() const { return const_reverse_iterator(m_end); }
+	const_reverse_iterator rend() const { return const_reverse_iterator(m_begin); }
+
+	// const迭代器（C++11）
+    const_iterator cbegin() const { return m_begin; }
+    const_iterator cend() const { return m_end; }
+    const_reverse_iterator crbegin() const { return const_reverse_iterator(m_end); }
+    const_reverse_iterator crend() const { return const_reverse_iterator(m_begin); }
 
 	// 辅助函数
 	void printElements() const;
 };
+
+// 比较操作符重载
+template<typename T>
+bool operator==(const vector<T>& lhs, const vector<T>& rhs);
+
+template<typename T>
+bool operator!=(const vector<T>& lhs, const vector<T>& rhs);
+
+template<typename T>
+bool operator<(const vector<T>& lhs, const vector<T>& rhs);
+
+template<typename T>
+bool operator>(const vector<T>& lhs, const vector<T>& rhs);
+
+template<typename T>
+bool operator<=(const vector<T>& lhs, const vector<T>& rhs);
+
+template<typename T>
+bool operator>=(const vector<T>& lhs, const vector<T>& rhs);
 
 // 非成员swap函数
 template<typename T>
@@ -785,62 +810,6 @@ void vector<T>::resize(size_type count, const T& value)
 	// 如果 count == current_size，什么都不做
 }
 
-// 使用的迭代器指向容器的开始位置
-template<typename T>
-typename vector<T>::iterator vector<T>::begin()
-{
-	return m_begin;
-}
-
-// 使用的迭代器指向容器的结束位置
-template<typename T>
-typename vector<T>::iterator vector<T>::end()
-{
-	return m_end;
-}
-
-// 使用的迭代器指向容器的开始位置（const版本）
-template<typename T>
-typename vector<T>::const_iterator vector<T>::begin() const
-{
-	return m_begin;
-}
-
-// 使用的迭代器指向容器的结束位置（const版本）
-template<typename T>
-typename vector<T>::const_iterator vector<T>::end() const
-{
-	return m_end;
-}
-
-// 反向迭代器指向容器的反向开始位置
-template<typename T>
-typename vector<T>::reverse_iterator_type vector<T>::rbegin()
-{
-	return reverse_iterator_type(m_end);
-}
-
-// 反向迭代器指向容器的反向结束位置
-template<typename T>
-typename vector<T>::reverse_iterator_type vector<T>::rend()
-{
-	return reverse_iterator_type(m_begin);
-}
-
-// 反向迭代器指向容器的反向开始位置（const版本）
-template<typename T>
-typename vector<T>::const_reverse_iterator vector<T>::rbegin() const
-{
-	return const_reverse_iterator(m_end);
-}
-
-// 反向迭代器指向容器的反向结束位置（const版本）
-template<typename T>
-typename vector<T>::const_reverse_iterator vector<T>::rend() const
-{
-	return const_reverse_iterator(m_begin);
-}
-
 // 打印容器中的元素
 template<typename T>
 void vector<T>::printElements() const
@@ -850,6 +819,48 @@ void vector<T>::printElements() const
 		std::cout << *it << " ";
 	}
 	std::cout << std::endl;
+}
+
+// 比较操作符重载
+template<typename T>
+bool operator==(const vector<T>& lhs, const vector<T>& rhs)
+{
+	if (lhs.size() != rhs.size())
+		return false;
+	for (size_t i = 0; i < lhs.size(); ++i)
+		if (lhs[i] != rhs[i])
+			return false;
+	return true;
+}
+
+template<typename T>
+bool operator!=(const vector<T>& lhs, const vector<T>& rhs)
+{
+	return !(lhs == rhs);
+}
+
+template<typename T>
+bool operator<(const vector<T>& lhs, const vector<T>& rhs)
+{
+	return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template<typename T>
+bool operator>(const vector<T>& lhs, const vector<T>& rhs)
+{
+	return rhs < lhs;
+}
+
+template<typename T>
+bool operator<=(const vector<T>& lhs, const vector<T>& rhs)
+{
+	return !(rhs < lhs);
+}
+
+template<typename T>
+bool operator>=(const vector<T>& lhs, const vector<T>& rhs)
+{
+	return !(lhs < rhs);
 }
 
 // 非成员swap函数，支持 ADL (Argument Dependent Lookup)
