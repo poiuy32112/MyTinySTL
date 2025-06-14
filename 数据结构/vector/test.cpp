@@ -753,6 +753,85 @@ void test_insert_erase_exceptions()
 	std::cout << "insert和erase异常安全性测试通过!" << std::endl;
 }
 
+// 16. 测试容量管理和 resize
+void test_capacity_and_resize()
+{
+	std::cout << "\n=== 16. 测试容量管理和 resize ===\n";
+
+	// --- 测试 shrink_to_fit ---
+	std::cout << "--- 测试 shrink_to_fit ---\n";
+	vector<int> v1;
+	v1.reserve(100);
+	assert(v1.capacity() >= 100);
+	assert(v1.size() == 0);
+
+	for (int i = 0; i < 10; ++i) {
+		v1.push_back(i);
+	}
+	print_info(v1, "v1 (reserve并添加元素后)");
+	assert(v1.capacity() >= 100);
+
+	v1.shrink_to_fit();
+	assert(v1.capacity() == 10);
+	assert(v1.size() == 10);
+	assert(v1[9] == 9);
+	print_info(v1, "v1 (shrink_to_fit后)");
+
+	// 测试对空vector进行shrink_to_fit
+	vector<int> v_empty;
+	v_empty.reserve(10);
+	v_empty.shrink_to_fit();
+	assert(v_empty.capacity() == 0);
+	assert(v_empty.size() == 0);
+	print_info(v_empty, "v_empty (shrink_to_fit后)");
+
+	// --- 测试 resize ---
+	std::cout << "\n--- 测试 resize ---\n";
+	vector<std::string> vs;
+	vs.push_back("a");
+	vs.push_back("b");
+	vs.push_back("c");
+	vs.push_back("d");
+	vs.push_back("e");
+	print_info(vs, "vs (初始状态)");
+
+	// 测试缩小 (shrink)
+	vs.resize(3);
+	assert(vs.size() == 3);
+	assert(vs.capacity() >= 5);
+	assert(vs.back() == "c");
+	print_info(vs, "vs (resize to 3)");
+
+	// 测试扩大 (grow) 到同一值
+	vs.resize(5, "X");
+	assert(vs.size() == 5);
+	assert(vs[3] == "X" && vs[4] == "X");
+	print_info(vs, "vs (resize to 5 with 'X')");
+
+	// 测试扩大并重新分配
+	vs.resize(10, "Y");
+	assert(vs.size() == 10);
+	assert(vs.capacity() >= 10);
+	assert(vs.back() == "Y");
+	print_info(vs, "vs (resize to 10 with 'Y')");
+
+	// 测试使用默认值的resize
+	vector<int> v2;
+	v2.push_back(1);
+	v2.resize(5); // 应该用0填充
+	assert(v2.size() == 5);
+	assert(v2[0] == 1);
+	assert(v2[1] == 0 && v2[2] == 0 && v2[3] == 0 && v2[4] == 0);
+	print_info(v2, "v2 (resize with default value)");
+
+	v2.resize(2);
+	assert(v2.size() == 2);
+	assert(v2[1] == 0);
+	print_info(v2, "v2 (resize to 2)");
+
+	std::cout << "容量管理和resize测试通过!" << std::endl;
+}
+
 int main()
 {
 	test_constructors();
@@ -770,6 +849,7 @@ int main()
 	test_string_element_access();
 	test_iterator_insert_erase();
 	test_insert_erase_exceptions();
+	test_capacity_and_resize();
 	
 	std::cout << "\n✅ 所有测试用例执行完毕!\n";
 	return 0;

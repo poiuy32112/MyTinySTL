@@ -76,6 +76,9 @@ public:
 	size_type size() const;
 	size_type capacity() const;
 	void reserve(size_type newCapacity);
+	void shrink_to_fit();
+	void resize(size_type count);
+	void resize(size_type count, const T& value);
 
 	// 迭代器
 	iterator begin();
@@ -694,6 +697,92 @@ void vector<T>::reserve(size_type newCapacity)
 		m_end = m_begin + current_size;
 		m_cap = m_begin + newCapacity;
 	}
+}
+
+// 减少容量以适应元素数量
+template<typename T>
+void vector<T>::shrink_to_fit()
+{
+	size_type current_size = size();
+	if (capacity() > current_size)
+	{
+		if (current_size == 0)
+		{
+			// 如果为空，释放所有内存
+			clear();
+			delete[] m_begin;
+			m_begin = m_end = m_cap = nullptr;
+			return;
+		}
+
+		// 分配新内存
+		T* newElements = new T[current_size];
+
+		try
+		{
+			// 移动旧元素到新内存
+			size_type i = 0;
+			for (iterator it = m_begin; it != m_end; ++it, ++i)
+			{
+				new (&newElements[i]) T(std::move(*it));
+			}
+		}
+		catch (...)
+		{
+			// 如果移动失败，释放新分配的内存
+			delete[] newElements;
+			throw; // 重新抛出异常，保持原有对象状态不变
+		}
+
+		// 成功后释放旧内存
+		// 手动销毁旧元素
+		for (iterator it = m_begin; it != m_end; ++it)
+		{
+			it->~T();
+		}
+		delete[] m_begin;
+
+		// 更新指针
+		m_begin = newElements;
+		m_end = m_begin + current_size;
+		m_cap = m_begin + current_size;
+	}
+}
+
+// 更改容器中元素的数量 - 版本1：默认值
+template<typename T>
+void vector<T>::resize(size_type count)
+{
+	resize(count, T());
+}
+
+// 更改容器中元素的数量 - 版本2：指定值
+template<typename T>
+void vector<T>::resize(size_type count, const T& value)
+{
+	size_type current_size = size();
+
+	if (count < current_size)
+	{
+		// 缩小：销毁多余的元素
+		iterator new_end = m_begin + count;
+		for (iterator it = new_end; it != m_end; ++it)
+		{
+			it->~T();
+		}
+		m_end = new_end;
+	}
+	else if (count > current_size)
+	{
+		// 扩大：添加新元素
+		reserve(count); // 确保有足够容量，可能会重新分配
+		for (size_type i = current_size; i < count; ++i)
+		{
+			new (m_end) T(value); // 拷贝构造新元素
+			++m_end;
+		}
+	}
+	// 如果 count == current_size，什么都不做
 }
 
 // 使用的迭代器指向容器的开始位置
