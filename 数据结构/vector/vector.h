@@ -4,6 +4,7 @@
 #include <string>
 #include <stdexcept>
 #include <utility>   // for std::move and std::forward
+#include <initializer_list>
 #include "iterator.h"
 
 template <typename T>
@@ -31,6 +32,11 @@ private:
 public:
 	// 构造函数和析构函数
 	vector();
+	explicit vector(size_type count);                           // 指定大小
+	vector(size_type count, const T& value);                   // 指定大小和值
+	template<class InputIt>
+	vector(InputIt first, InputIt last);                       // 范围构造
+	vector(std::initializer_list<T> init);                     // 初始化列表
 	~vector();
 	vector(const vector& other);                    // 拷贝构造函数
 	vector(vector&& other) noexcept;               // 移动构造函数
@@ -67,8 +73,8 @@ public:
 	void clear();
 
 	// 容量
-	size_type getSize() const;
-	size_type getCapacity() const;
+	size_type size() const;
+	size_type capacity() const;
 	void reserve(size_type newCapacity);
 
 	// 迭代器
@@ -96,6 +102,138 @@ void swap(vector<T>& lhs, vector<T>& rhs) noexcept;
 // 默认构造函数
 template<typename T>
 vector<T>::vector() : m_begin(nullptr), m_end(nullptr), m_cap(nullptr) {}
+
+// 指定大小的构造函数
+template<typename T>
+vector<T>::vector(size_type count) : m_begin(nullptr), m_end(nullptr), m_cap(nullptr)
+{
+	if (count > 0)
+	{
+		m_begin = new T[count];
+		m_end = m_begin;
+		m_cap = m_begin + count;
+
+		try
+		{
+			for (size_type i = 0; i < count; ++i)
+			{
+				new (m_end) T();  // 默认构造
+				++m_end;
+			}
+		}
+		catch (...)
+		{
+			clear();
+			delete[] m_begin;
+			m_begin = nullptr;
+			m_end = nullptr;
+			m_cap = nullptr;
+			throw;
+		}
+	}
+}
+
+// 指定大小和值的构造函数
+template<typename T>
+vector<T>::vector(size_type count, const T& value) : m_begin(nullptr), m_end(nullptr), m_cap(nullptr)
+{
+	if (count > 0)
+	{
+		m_begin = new T[count];
+		m_end = m_begin;
+		m_cap = m_begin + count;
+
+		try
+		{
+			for (size_type i = 0; i < count; ++i)
+			{
+				new (m_end) T(value);  // 拷贝构造
+				++m_end;
+			}
+		}
+		catch (...)
+		{
+			clear();
+			delete[] m_begin;
+			m_begin = nullptr;
+			m_end = nullptr;
+			m_cap = nullptr;
+			throw;
+		}
+	}
+}
+
+// 范围构造函数
+template<typename T>
+template<class InputIt>
+vector<T>::vector(InputIt first, InputIt last) : m_begin(nullptr), m_end(nullptr), m_cap(nullptr)
+{
+	if (first != last)
+	{
+		// 计算距离（对于输入迭代器可能需要遍历）
+		size_type count = 0;
+		for (InputIt it = first; it != last; ++it)
+		{
+			++count;
+		}
+
+		if (count > 0)
+		{
+			m_begin = new T[count];
+			m_end = m_begin;
+			m_cap = m_begin + count;
+
+			try
+			{
+				for (InputIt it = first; it != last; ++it)
+				{
+					new (m_end) T(*it);  // 拷贝构造
+					++m_end;
+				}
+			}
+			catch (...)
+			{
+				clear();
+				delete[] m_begin;
+				m_begin = nullptr;
+				m_end = nullptr;
+				m_cap = nullptr;
+				throw;
+			}
+		}
+	}
+}
+
+// 初始化列表构造函数
+template<typename T>
+vector<T>::vector(std::initializer_list<T> init) : m_begin(nullptr), m_end(nullptr), m_cap(nullptr)
+{
+	size_type count = init.size();
+	if (count > 0)
+	{
+		m_begin = new T[count];
+		m_end = m_begin;
+		m_cap = m_begin + count;
+
+		try
+		{
+			for (const auto& value : init)
+			{
+				new (m_end) T(value);  // 拷贝构造
+				++m_end;
+			}
+		}
+		catch (...)
+		{
+			clear();
+			delete[] m_begin;
+			m_begin = nullptr;
+			m_end = nullptr;
+			m_cap = nullptr;
+			throw;
+		}
+	}
+}
 
 // 析构函数
 template<typename T>
@@ -503,14 +641,14 @@ void vector<T>::clear()
 
 // 获取容器中元素的个数
 template<typename T>
-typename vector<T>::size_type vector<T>::getSize() const
+typename vector<T>::size_type vector<T>::size() const
 {
 	return m_end - m_begin;
 }
 
 // 获取容器的容量
 template<typename T>
-typename vector<T>::size_type vector<T>::getCapacity() const
+typename vector<T>::size_type vector<T>::capacity() const
 {
 	return m_cap - m_begin;
 }
