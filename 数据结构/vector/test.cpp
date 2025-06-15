@@ -1461,6 +1461,217 @@ void test_allocator_compatibility()
     std::cout << "✅ 分配器兼容性测试通过!" << std::endl;
 }
 
+// 24. 测试allocator_traits的基础功能
+void test_allocator_traits()
+{
+    std::cout << "\n=== 24. 测试allocator_traits的基础功能 ===\n";
+
+    // 测试allocator_traits类型特征
+    std::cout << "--- 测试allocator_traits类型特征 ---\n";
+
+    typedef vector<int>::allocator_type alloc_type;
+    typedef vector<int>::allocator_traits traits_type;
+
+    // 验证类型特征
+    static_assert(std::is_same_v<traits_type::value_type, int>, "value_type应该是int");
+    static_assert(std::is_same_v<traits_type::allocator_type, std::allocator<int>>, "allocator_type应该是std::allocator<int>");
+
+    std::cout << "✅ allocator_traits类型特征正确" << std::endl;
+
+    // 测试基础的allocator_traits功能
+    std::cout << "--- 测试基础的allocator_traits功能 ---\n";
+
+    vector<std::string> v;
+
+    // 测试基础操作
+    v.push_back("first");
+    v.push_back("second");
+    v.emplace_back("third");
+
+    assert(v.size() == 3);
+    assert(v[0] == "first");
+    assert(v[1] == "second");
+    assert(v[2] == "third");
+    print_info(v, "allocator_traits基础操作");
+
+    // 测试容量管理
+    v.reserve(10);
+    assert(v.capacity() >= 10);
+    v.resize(5, "default");
+    assert(v.size() == 5);
+    assert(v[4] == "default");
+    print_info(v, "容量管理后");
+
+    // 测试插入和删除
+    auto it = v.insert(v.begin() + 1, "inserted");
+    assert(*it == "inserted");
+    assert(v[1] == "inserted");
+
+    v.erase(v.begin() + 1);
+    assert(v[1] == "second");
+    print_info(v, "插入删除后");
+
+    std::cout << "✅ allocator_traits基础功能测试通过!" << std::endl;
+}
+
+// 25. 测试allocator_traits与自定义分配器的配合
+void test_allocator_traits_with_custom_allocator()
+{
+    std::cout << "\n=== 25. 测试allocator_traits与自定义分配器的配合 ===\n";
+
+    tracking_allocator<int>::reset_stats();
+
+    {
+        std::cout << "--- 测试自定义分配器的allocator_traits ---\n";
+
+        typedef vector<int, tracking_allocator<int>>::allocator_traits custom_traits;
+
+        // 验证自定义分配器的traits
+        static_assert(std::is_same_v<custom_traits::value_type, int>, "value_type应该是int");
+        static_assert(std::is_same_v<custom_traits::allocator_type, tracking_allocator<int>>, "allocator_type应该是tracking_allocator<int>");
+
+        vector<int, tracking_allocator<int>> v;
+
+        // 测试构造和析构的正确跟踪
+        std::cout << "\n--- 测试构造和析构跟踪 ---\n";
+
+        v.push_back(1);
+        v.push_back(2);
+        v.push_back(3);
+        tracking_allocator<int>::print_stats();
+
+        // 测试emplace_back
+        v.emplace_back(4);
+        v.emplace_back(5);
+        assert(v.size() == 5);
+        tracking_allocator<int>::print_stats();
+
+        // 测试insert
+        v.insert(v.begin() + 2, 99);
+        assert(v[2] == 99);
+        tracking_allocator<int>::print_stats();
+
+        // 测试erase
+        v.erase(v.begin() + 2);
+        assert(v[2] == 3);
+        tracking_allocator<int>::print_stats();
+
+        // 测试resize
+        v.resize(10, 88);
+        assert(v.size() == 10);
+        assert(v[9] == 88);
+        tracking_allocator<int>::print_stats();
+
+        // 测试shrink_to_fit
+        v.shrink_to_fit();
+        assert(v.capacity() == 10);
+        tracking_allocator<int>::print_stats();
+
+        print_info(v, "自定义分配器测试完成");
+    }
+
+    std::cout << "\n--- 析构后的统计 ---\n";
+    tracking_allocator<int>::print_stats();
+
+    // 验证没有内存泄漏
+    assert(tracking_allocator<int>::allocations == tracking_allocator<int>::deallocations);
+    std::cout << "✅ 自定义分配器的allocator_traits测试通过!" << std::endl;
+}
+
+// 26. 测试allocator_traits的边界情况
+void test_allocator_traits_edge_cases()
+{
+    std::cout << "\n=== 26. 测试allocator_traits的边界情况 ===\n";
+
+    tracking_allocator<std::string>::reset_stats();
+
+    {
+        // 测试复杂类型（std::string）的allocator_traits
+        std::cout << "--- 测试复杂类型的allocator_traits ---\n";
+
+        vector<std::string, tracking_allocator<std::string>> v;
+
+        // 测试大量插入和删除操作
+        for (int i = 0; i < 20; ++i)
+        {
+            v.push_back("item_" + std::to_string(i));
+        }
+        assert(v.size() == 20);
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试范围删除
+        v.erase(v.begin() + 5, v.begin() + 15);
+        assert(v.size() == 10);
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试clear
+        v.clear();
+        assert(v.size() == 0);
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试重新填充
+        v.resize(5, "new_item");
+        assert(v.size() == 5);
+        assert(v[0] == "new_item");
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试拷贝构造
+        vector<std::string, tracking_allocator<std::string>> v2(v);
+        assert(v2.size() == v.size());
+        assert(v2[0] == v[0]);
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试移动构造
+        vector<std::string, tracking_allocator<std::string>> v3(std::move(v2));
+        assert(v3.size() == 5);
+        assert(v2.size() == 0);
+        tracking_allocator<std::string>::print_stats();
+
+        // 测试赋值操作
+        v = v3;
+        assert(v.size() == 5);
+        tracking_allocator<std::string>::print_stats();
+
+        print_info(v, "复杂类型测试完成");
+        print_info(v2, "被移动的vector");
+        print_info(v3, "移动构造的vector");
+    }
+
+    std::cout << "\n--- 所有对象析构后的统计 ---\n";
+    tracking_allocator<std::string>::print_stats();
+
+    // 验证没有内存泄漏
+    assert(tracking_allocator<std::string>::allocations == tracking_allocator<std::string>::deallocations);
+
+    // 测试空vector的allocator_traits操作
+    std::cout << "\n--- 测试空vector的allocator_traits操作 ---\n";
+
+    tracking_allocator<int>::reset_stats();
+    {
+        vector<int, tracking_allocator<int>> empty_v;
+
+        // 对空vector的操作不应该分配内存
+        empty_v.clear();
+        empty_v.shrink_to_fit();
+        empty_v.resize(0);
+
+        // 验证没有分配
+        assert(tracking_allocator<int>::allocations == 0);
+        std::cout << "✅ 空vector操作测试通过" << std::endl;
+
+        // 首次分配测试
+        empty_v.push_back(42);
+        assert(empty_v[0] == 42);
+        assert(tracking_allocator<int>::allocations > 0);
+        tracking_allocator<int>::print_stats();
+    }
+
+    tracking_allocator<int>::print_stats();
+    assert(tracking_allocator<int>::allocations == tracking_allocator<int>::deallocations);
+
+    std::cout << "✅ allocator_traits边界情况测试通过!" << std::endl;
+}
+
 int main()
 {
     test_constructors();
@@ -1484,6 +1695,11 @@ int main()
     test_custom_allocator();
     test_allocator_constructors();
     test_allocator_capacity_operations();
+    test_allocator_swap_assignment();
+    test_allocator_compatibility();
+    test_allocator_traits();
+    test_allocator_traits_with_custom_allocator();
+    test_allocator_traits_edge_cases();
 
     std::cout << "\n✅ 所有测试用例执行完毕!\n";
     return 0;
